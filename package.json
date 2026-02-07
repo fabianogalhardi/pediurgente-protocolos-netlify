@@ -1,0 +1,7 @@
+{
+  "name": "pediurgente-protocolos-netlify",
+  "private": true,
+  "dependencies": {
+    "firebase-admin": "^12.0.0"
+  }
+}

@@ -1,0 +1,4898 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Sala Vermelha – PediUrgente</title>
+
+  <!-- Fonte alinhada ao seu ecossistema -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet"/>
+
+  <!-- Firebase (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
+  <style>
+    :root{
+      --bg1:#F5F8FF;
+      --bg2:#D6E6FF;
+      --card:#ffffff;
+      --ink:#0f172a;
+      --muted:#475569;
+      --line:#dbeafe;
+      --pri:#1d4ed8;
+      --pri2:#2563eb;
+      --danger:#b91c1c;
+      --ok:#166534;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: Nunito, system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+      color:var(--ink);
+      background: linear-gradient(135deg,var(--bg1) 0%,var(--bg2) 100%);
+      min-height:100vh;
+    }
+    .wrap{
+      max-width: 1100px;
+      margin: 18px auto 36px;
+      padding: 0 12px;
+    }
+    .topbar{
+      background: rgba(255,255,255,.85);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px 14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      box-shadow: 0 10px 28px rgba(29,78,216,.10);
+      backdrop-filter: blur(8px);
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      font-weight:800;
+      letter-spacing:.2px;
+    }
+    .pill{
+      font-size:12px;
+      color:var(--pri);
+      background:#eff6ff;
+      border:1px solid #bfdbfe;
+      padding:4px 10px;
+      border-radius:999px;
+      font-weight:700;
+    }
+    .tabs{
+      display:flex; gap:8px; flex-wrap:wrap;
+    }
+    .tab{
+      border:1px solid var(--line);
+      background:#fff;
+      padding:8px 12px;
+      border-radius:999px;
+      cursor:pointer;
+      font-weight:800;
+      color:var(--muted);
+    }
+    .tab.active{
+      color:#fff;
+      background: linear-gradient(135deg,var(--pri) 0%, var(--pri2) 100%);
+      border-color: transparent;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:12px;
+      margin-top: 12px;
+    }
+    .card{
+      background: rgba(255,255,255,.9);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px;
+      box-shadow: 0 10px 26px rgba(15,23,42,.06);
+      backdrop-filter: blur(8px);
+    }
+    .card h2{
+      margin:0 0 10px;
+      font-size: 16px;
+      letter-spacing:.2px;
+    }
+    .row{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:10px;
+    }
+    @media(min-width:860px){
+      .row.cols-2{ grid-template-columns: 1fr 1fr; }
+      .row.cols-3{ grid-template-columns: 1fr 1fr 1fr; }
+      .row.cols-4{ grid-template-columns: 1.2fr 1fr 1fr 1fr; }
+    }
+    label{
+      display:block;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight:800;
+      margin-bottom:6px;
+    }
+    input, select, textarea{
+      width:100%;
+      padding:10px 10px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background:#fff;
+      font-family: inherit;
+      font-size: 14px;
+      outline:none;
+    }
+    textarea{ min-height: 92px; resize: vertical; }
+    input:focus, select:focus, textarea:focus{
+      border-color:#93c5fd;
+      box-shadow: 0 0 0 3px rgba(59,130,246,.12);
+    }
+    .btns{ display:flex; gap:8px; flex-wrap:wrap; }
+    .btn{
+      border:0;
+      padding:10px 12px;
+      border-radius: 12px;
+      cursor:pointer;
+      font-weight:900;
+      background:#fff;
+      border:1px solid var(--line);
+      color:var(--ink);
+    }
+    .btn.primary{
+      color:#fff;
+      background: linear-gradient(135deg,var(--pri) 0%, var(--pri2) 100%);
+      border-color: transparent;
+    }
+    .btn.danger{
+      color:#fff;
+      background: linear-gradient(135deg,#dc2626 0%, #b91c1c 100%);
+      border-color: transparent;
+    }
+    .hint{
+      font-size: 12px; color: var(--muted);
+      margin-top: 6px;
+      line-height:1.35;
+    }
+
+    /* 3 caixas (peso / pcal / sc) */
+    .triple{
+      display:grid;
+      gap:10px;
+      grid-template-columns: 1fr;
+    }
+    @media(min-width:860px){
+      .triple{ grid-template-columns: 1fr 1fr 1fr; }
+    }
+    .metric{
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+      min-height: 86px;
+    }
+    .metric .k{
+      font-size: 12px;
+      color: var(--muted);
+      font-weight:900;
+      letter-spacing:.2px;
+      margin-bottom:6px;
+    }
+    .metric .v{
+      font-size: 22px;
+      font-weight:1000;
+      letter-spacing:.2px;
+    }
+    .metric .s{
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 6px;
+      line-height:1.25;
+    }
+
+    table{
+      width:100%;
+      border-collapse: collapse;
+      overflow:hidden;
+      border-radius: 14px;
+      border:1px solid var(--line);
+      background:#fff;
+    }
+    th, td{
+      border-bottom:1px solid var(--line);
+      padding:10px 10px;
+      vertical-align: top;
+      font-size: 13px;
+    }
+    th{
+      background:#eff6ff;
+      color:#0b2a6f;
+      font-weight:1000;
+      text-align:left;
+      font-size:12px;
+      letter-spacing:.2px;
+    }
+    tr:last-child td{ border-bottom:0; }
+/* Linha de grupo na tabela (TELA) */
+tr.grp td{
+  background:#eff6ff;
+  font-weight:1000;
+  color:#0b2a6f;
+  border-top:1px solid #cbd5e1;
+
+  text-align:center;       /* NOVO */
+  letter-spacing:.3px;     /* opcional, melhora visual */
+}
+
+
+    
+
+/* Cabeçalho de SESSÃO (diferente do cabeçalho de GRUPO) */
+tr.sec td{
+  background:#f6f1e7;        /* bege claro (harmônico) */
+  font-weight:1000;
+  color:#3b2f1f;
+  border-top:1px solid #e5e0d6;
+  text-align:center;
+  letter-spacing:.3px;
+}
+.small{
+      font-size:12px;
+      color: var(--muted);
+      line-height:1.35;
+    }
+    /* aviso discreto quando clamp por dose máxima */
+.limit-note{
+  color: var(--danger);
+  font-weight: 900;
+  font-size: 11px;
+  display: block;
+  margin-top: 2px;
+}
+
+    /* =========================
+   PROTOCOLOS — FORMATAÇÃO DO TEXTO
+   ========================= */
+#protoCard #protoBody p,
+#protoCard #protoSummary p{
+  font-weight: 800;
+  margin: 0 0 10px;
+}
+
+#protoCard #protoBody ul,
+#protoCard #protoBody ol,
+#protoCard #protoSummary ul,
+#protoCard #protoSummary ol{
+  margin: 8px 0 10px;
+  padding-left: 18px;
+}
+
+#protoCard #protoBody li,
+#protoCard #protoSummary li{
+  margin: 4px 0;
+}
+
+    /* Protocolos: parágrafos em negrito */
+#protoBody p, #protoSummary p{
+  font-weight: 900;
+}
+
+    .tag{
+      display:inline-block;
+      font-size:11px;
+      font-weight:900;
+      border:1px solid var(--line);
+      background:#f8fafc;
+      padding:3px 8px;
+      border-radius:999px;
+      color: var(--muted);
+      margin-left:6px;
+    }
+
+    .inline-stepper{
+      display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+      margin-top: 8px;
+    }
+    .stepval{
+      font-weight:1000;
+      padding:6px 10px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      background:#fff;
+    }
+    .status{
+      font-size:12px;
+      font-weight:900;
+      color:var(--muted);
+    }
+    /* =========================
+   MATERIAIS — TABELA COMPLETA EM GRID (2 celular / 3 desktop)
+   ========================= */
+.mat-grid{
+  display:grid;
+  gap:10px;
+  grid-template-columns: 1fr;            /* fallback */
+}
+
+/* celular: 2 colunas */
+@media (min-width: 520px){
+  .mat-grid{ grid-template-columns: 1fr 1fr; }
+}
+
+/* desktop: 3 colunas */
+@media (min-width: 980px){
+  .mat-grid{ grid-template-columns: 1fr 1fr 1fr; }
+}
+
+.mat-card{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:16px;
+  overflow:hidden;
+}
+
+.mat-card .mat-h{
+  padding:10px 12px;
+  background:#eff6ff;
+  border-bottom:1px solid var(--line);
+  font-weight:1000;
+  font-size:13px;
+  color:#0b2a6f;
+}
+
+.mat-card .mat-body{ padding:10px 12px; }
+.mat-main{ font-weight:1000; font-size:14px; }
+.mat-sub{ margin-top:6px; font-size:11px; color:var(--muted); }
+
+@media print{
+  body{ background:#fff !important; }
+  .topbar, .tabs, .btns, .hint, .status{ display:none !important; }
+  .wrap{ max-width: 100% !important; margin:0 !important; padding:0 !important; }
+  .card{ box-shadow:none !important; border:0 !important; border-radius:0 !important; page-break-inside: avoid; }
+  table{ border:1px solid #ccc !important; }
+  th, td{ border-bottom:1px solid #ddd !important; }
+  .inline-stepper, .btn{ display:none !important; } /* remove steppers/botões da impressão */
+  a{ color:#000 !important; text-decoration:none !important; }
+}
+
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div style="width:34px;height:34px;border-radius:12px;background:linear-gradient(135deg,#1d4ed8,#2563eb);box-shadow:0 10px 20px rgba(29,78,216,.25)"></div>
+        <div>
+          <div style="font-size:14px">PediUrgente</div>
+          <div style="font-size:12px;color:#475569;font-weight:800;margin-top:2px">Sala Vermelha – Prescrição Automática</div>
+        </div>
+        <span class="pill" id="modePill">Modo: Calculadora</span>
+      </div>
+
+      <div class="tabs">
+  <button class="tab active" id="tabCalc">Calculadora</button>
+  <button class="tab" id="tabCrud">CRUD Medicações</button>
+  <button class="tab" id="tabProto">CRUD Protocolos</button>
+</div>
+    </div>
+
+    <!-- =========================
+         CALCULADORA
+         ========================= -->
+    <div class="grid" id="calcView">
+      <!-- PROTOCOLO (modo público / por slug) -->
+<div class="card" id="protoCard" style="display:none">
+  <h2 id="protoTitle">—</h2>
+  <div class="small" id="protoSubtitle" style="margin-top:-6px"></div>
+
+  <div class="small" id="protoSummary" style="margin-top:10px"></div>
+
+  <div id="protoFlowWrap" style="display:none; margin-top:12px">
+    <div class="small" style="margin-bottom:6px"><b>Fluxograma</b></div>
+    <img id="protoFlowImg" alt="Fluxograma" style="width:100%; border:1px solid var(--line); border-radius:14px; background:#fff"/>
+  </div>
+
+  <div id="protoBody" class="small" style="margin-top:12px; line-height:1.5"></div>
+</div>
+
+
+      <div class="card">
+        <h2>Dados do paciente</h2>
+        <div class="row cols-4">
+          <div>
+            <label>Nome (opcional)</label>
+            <input id="pName" placeholder="Ex.: João da Silva"/>
+          </div>
+          <div>
+            <label>Data de nascimento (opcional)</label>
+            <input id="pDob" type="date"/>
+          </div>
+          <div>
+            <label>Idade (obrigatório)</label>
+            <input id="pAge" placeholder="Ex.: 2a 3m" />
+            <div class="hint">Pode ser livre (texto). O obrigatório aqui é preencher.</div>
+          </div>
+          <div>
+            <label>Peso em kg (obrigatório)</label>
+            <input id="pWeight" type="number" min="0" step="0.1" placeholder="Ex.: 10"/>
+          </div>
+        </div>
+
+        <div class="btns" style="margin-top:10px">
+  <button class="btn primary" id="btnCalc">Calcular / Atualizar</button>
+  <button class="btn" id="btnClear">Limpar</button>
+  <button class="btn" id="btnPrint">Imprimir / PDF</button>
+  <span class="status" id="calcStatus"></span>
+</div>
+
+      </div>
+
+      <div class="card">
+        <h2>Resumo (3 caixas)</h2>
+        <div class="triple">
+          <div class="metric">
+            <div class="k">PESO</div>
+            <div class="v" id="mWeight">—</div>
+            <div class="s">Repete o peso informado (kg).</div>
+          </div>
+          <div class="metric">
+            <div class="k">PESO CALÓRICO (Pcal)</div>
+            <div class="v" id="mPcal">—</div>
+            <div class="s" id="mPcalSub">Holliday–Segar: volume hídrico diário (mL) ÷ 100</div>
+          </div>
+          <div class="metric">
+            <div class="k">SUPERFÍCIE CORPORAL (SC)</div>
+            <div class="v" id="mSC">—</div>
+            <div class="s">SC (m²) = (Peso×4 + 7) / (Peso + 90)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Prescrição automática</h2>
+        <div class="small" style="margin-bottom:10px">
+          Estrutura: <b>Droga e apresentação</b> – <b>Prescrição</b> – <b>Observação</b>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="width:34%">DROGA E APRESENTAÇÃO</th>
+              <th style="width:43%">PRESCRIÇÃO</th>
+              <th style="width:23%">OBSERVAÇÃO</th>
+            </tr>
+          </thead>
+          <tbody id="rxBody">
+            <tr><td colspan="3" class="small">Preencha peso e clique em <b>Calcular</b>.</td></tr>
+          </tbody>
+        </table>
+
+        <div class="hint" style="margin-top:10px">
+          Observação: este é um gerador para uso clínico rápido. Mantenha suas checagens de segurança (concentração, via, compatibilidade, limites e contexto clínico).
+        </div>
+      </div>
+<div class="card" id="materialsCard">
+  <h2>Materiais / Equipamentos — Selecionado para este paciente</h2>
+
+  <div class="small" style="margin-bottom:10px">
+    Mostra automaticamente 1 recomendação por item (filtrado por peso/idade).
+  </div>
+
+
+  <div class="mat-grid" id="matGrid">
+    <!-- cards gerados por JS -->
+  </div>
+
+  <div class="hint" style="margin-top:10px">
+    Regra prática: quando o peso cair entre faixas (ex.: 23 kg), use a faixa imediatamente inferior.
+  </div>
+</div>
+    </div>
+
+    <!-- =========================
+         CRUD
+         ========================= -->
+    <div class="grid" id="crudView" style="display:none">
+
+      <div class="card">
+        <h2>CRUD – Medicações (Sala Vermelha)</h2>
+
+        <div class="row cols-3">
+          <div>
+            <label>Nome da medicação</label>
+            <input id="mName" placeholder="Ex.: Epinefrina (Adrenalina)"/>
+          </div>
+          <div>
+            <label>Apresentação</label>
+            <input id="mPres" placeholder="Ex.: 1 mg/mL (ampola 1 mL)"/>
+          </div>
+          <div>
+            <label>Grupo / Seção</label>
+            <input id="mGroup" placeholder="Ex.: Parada cardiorrespiratória"/>
+          </div>
+        </div>
+
+        <div class="row cols-2" style="margin-top:10px">
+          <div>
+            <label>Diluição</label>
+            <input id="mDil" placeholder="Ex.: 1 mL + 9 mL de AD"/>
+          </div>
+          <div>
+            <label>Rediluição (opcional)</label>
+            <input id="mRedil" placeholder="Se houver"/>
+          </div>
+        </div>
+
+        <div class="row cols-3" style="margin-top:10px">
+          <div>
+            <label>Tipo de cálculo (calcKey)</label>
+            <select id="mCalcKey">
+  <!-- GENÉRICOS (recomendado) -->
+  <option value="GEN_2RESP_MGKG_TO_ML">GEN_2RESP_MGKG_TO_ML (mg/kg → mL, 2 respostas, com min/max)</option>
+              <option value="COMPLETA_GERAL">COMPLETA_GERAL (prescrição completa: frasco + reconstituição + dose mL + diluição + via + frequência + infusão + bomba + referência; até 6 respostas)</option>
+  <option value="GEN_2RESP_MLKG">GEN_2RESP_MLKG (mL/kg → mL, 2 respostas)</option>
+  <option value="GEN_2RESP_JKG">GEN_2RESP_JKG (J/kg → J, 2 respostas, teto)</option>
+  <option value="GEN_1RESP_MLKG_DILUTION">GEN_1RESP_MLKG_DILUTION (mL/kg + diluição proporcional, 1 resposta)</option>
+  <option value="GEN_STEPPER">GEN_STEPPER (stepper genérico: bolus mg/kg→mL OU infusion mcg/kg/min→mL/h)</option>
+  <option value="GEN_INFUSION_H_STEPPER">GEN_INFUSION_H_STEPPER (infusão contínua por HORA: mcg/kg/h, mg/kg/h ou UI/kg/h → mL/h, com stepper)</option>
+<option value="KCL_PCAL_4H_STEPPER">KCL_PCAL_4H_STEPPER (KCl por Pcal em 4h + stepper dose e concentração)</option>
+<option value="GEN_ELEC_HYPONATREMIA">GEN_ELEC_HYPONATREMIA (Hiponatremia: déficit Na + metade 30min / metade 24h)</option>
+<option value="GEN_ELEC_HYPERNATREMIA">GEN_ELEC_HYPERNATREMIA (Hipernatremia: déficit água livre + rate 48–72h)</option>
+<option value="GEN_ELEC_HYPOCALCEMIA">GEN_ELEC_HYPOCALCEMIA (Hipocalcemia: assintomática/sintomática)</option>
+<option value="GEN_ELEC_HYPOMAGNESEMIA">GEN_ELEC_HYPOMAGNESEMIA (Hipomagnesemia: MgSO₄ 10%/50% + arritmias)</option>
+<option value="KPHOS_BY_P_SERUM">KPHOS_BY_P_SERUM (Fosfato de potássio guiado por fósforo sérico)</option>
+  <option value="TEXT_ONLY">TEXT_ONLY (texto fixo sem cálculo)</option>
+
+  <!-- LEGADOS (se você quiser manter compatibilidade) -->
+  <option value="EPI_CPR">EPI_CPR (PCR – epinefrina 0,1 mL/kg após diluir 1:10)</option>
+  <option value="AMIO_CPR">AMIO_CPR (PCR – amiodarona 5 mg/kg; diluição padrão 60 mL)</option>
+  <option value="DEFIB_2RESP">DEFIB_2RESP (Desfibrilação – 2 respostas)</option>
+  <option value="NOREPI_STEPPER">NOREPI_STEPPER (Vasoativa – stepper mcg/kg/min → mL/h)</option>
+  <option value="CARDIOV_2RESP">CARDIOV_2RESP (Cardioversão sincronizada – 1 J/kg e 2 J/kg)</option>
+  <option value="ATROP_2RESP">ATROP_2RESP (Atropina 0,5 mg/mL – 0,02 e 0,04 mg/kg; min/max)</option>
+  <option value="ADENO_2RESP">ADENO_2RESP (Adenosina 3 mg/mL – 0,1 e 0,2 mg/kg; máx 12 mg)</option>
+  <option value="BICARB_1RESP">BICARB_1RESP (Bicarbonato 8,4% – 1 mL/kg; rediluir 1:1)</option>
+  <option value="SF_2RESP">SF_2RESP (SF 0,9% – 10 e 20 mL/kg)</option>
+  <option value="RL_2RESP">RL_2RESP (Ringer Lactato – 10 e 20 mL/kg)</option>
+  <option value="GLIC50_2RESP">GLIC50_2RESP (Glicose 50% – 200 e 400 mg/kg; diluir 1:1)</option>
+  <option value="CA_GLUC_2RESP">CA_GLUC_2RESP (Gluconato de cálcio 10% – 60 e 100 mg/kg; máx 4000 mg)</option>
+  <option value="KETAMINE_STEPPER">KETAMINE_STEPPER (Cetamina 50 mg/mL – stepper mg/kg)</option>
+
+</select>
+
+            <div class="hint">Você pode adicionar novos calcKey no JS (registry) e o CRUD passa a suportar novas lógicas.</div>
+          </div>
+
+          <div>
+            <label>Ativo?</label>
+            <select id="mActive">
+              <option value="true">Sim</option>
+              <option value="false">Não</option>
+            </select>
+          </div>
+
+          <div>
+            <label>Usar tipo de referência específico?</label>
+            <select id="mRefEnabled">
+              <option value="false">Não</option>
+              <option value="true">Sim (mostrar em parênteses)</option>
+            </select>
+            <div class="hint">Ex.: “(0,01 mg/kg/dose)” ou “(0,05 mcg/kg/min)”.</div>
+          </div>
+        </div>
+
+        <div class="row cols-2" style="margin-top:10px">
+          <div>
+            <label>Texto de referência (se habilitado)</label>
+            <input id="mRefText" placeholder="Ex.: 0,01 mg/kg/dose"/>
+          </div>
+          <div>
+            <label>Observação</label>
+            <input id="mObs" placeholder="Ex.: Flush 5 mL SF 0,9% / Afastar todos e O2"/>
+          </div>
+        </div>
+
+        <div class="row cols-2" style="margin-top:10px">
+          <div>
+            <label>Resposta 1 – Nome</label>
+            <input id="mR1Label" placeholder="Ex.: Dose inicial"/>
+          </div>
+          <div>
+            <label>Resposta 2 – Nome (opcional)</label>
+            <input id="mR2Label" placeholder="Ex.: Dose seguinte"/>
+          </div>
+        </div>
+        <div class="row cols-3" style="margin-top:10px">
+  <div>
+    <label>Resposta 3 – Nome (opcional)</label>
+    <input id="mR3Label" placeholder="Ex.: Dose 3"/>
+  </div>
+  <div>
+    <label>Resposta 4 – Nome (opcional)</label>
+    <input id="mR4Label" placeholder="Ex.: Dose 4"/>
+  </div>
+  <div>
+    <label>Resposta 5 – Nome (opcional)</label>
+    <input id="mR5Label" placeholder="Ex.: Dose 5"/>
+  </div>
+</div>
+
+<div class="row cols-2" style="margin-top:10px">
+  <div>
+    <label>Resposta 6 – Nome (opcional)</label>
+    <input id="mR6Label" placeholder="Ex.: Dose 6"/>
+  </div>
+  <div>
+    <div class="hint">Se não usar, deixe vazio.</div>
+  </div>
+</div>
+
+
+        <div class="row" style="margin-top:10px">
+          <div>
+            <label>Parâmetros (JSON) – opcional, por calcKey</label>
+            <textarea id="mParams" placeholder='Ex.: {"maxMg":1,"flushMl":5}'></textarea>
+            <div class="hint">
+              Exemplos úteis:
+              <br/>• EPI_CPR: {"maxMg":1,"flushMl":5}
+              <br/>• AMIO_CPR: {"maxMg":150,"vehicle":"SG5%"}  (max em mg; veículo texto)
+              <br/>• DEFIB_2RESP: {"maxJ":200}
+              <br/>• NOREPI_STEPPER: {"start":0.05,"step":0.05,"max":2,"concMcgPerMl":50}
+            </div>
+          </div>
+        </div>
+
+        <div class="btns" style="margin-top:10px">
+          <button class="btn primary" id="btnSaveMed">Salvar</button>
+          <button class="btn" id="btnResetMed">Limpar formulário</button>
+          <button class="btn danger" id="btnDeleteMed" style="display:none">Excluir</button>
+          <span class="status" id="crudStatus"></span>
+        </div>
+
+        <div class="hint" style="margin-top:10px">
+          Dica operacional: se você já tem Auth/Admin no PediFácil, aqui você só liga a permissão de escrita (rules) para admins.
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Medicações cadastradas</h2>
+        <div class="hint" style="margin-bottom:10px">Clique em uma medicação para editar.</div>
+        <div class="row" style="margin-bottom:10px">
+  <div>
+    <label>Filtrar por nome ou grupo</label>
+    <input id="medSearch" placeholder="Digite para filtrar (ex.: epi, nor, amio)"/>
+  </div>
+</div>
+        <div id="medList" class="small">Carregando…</div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- =========================
+     CRUD PROTOCOLOS
+     ========================= -->
+<div class="grid" id="protoView" style="display:none">
+
+  <div class="card">
+    <h2>CRUD – Protocolos (texto + fluxograma + vínculo com calculadora)</h2>
+
+    <div class="row cols-3">
+      <div>
+        <label>Slug (URL)</label>
+        <input id="pSlug" placeholder="ex.: crise-epileptica"/>
+        <div class="hint">Será o ID do documento e o parâmetro ?proto=</div>
+      </div>
+      <div>
+        <label>Título</label>
+        <input id="pTitle" placeholder="ex.: Crise epiléptica e EME convulsivo"/>
+      </div>
+      <div>
+        <label>Subtítulo</label>
+        <input id="pSubtitle" placeholder="ex.: Crianças e adolescentes"/>
+      </div>
+    </div>
+
+    <div class="row cols-2" style="margin-top:10px">
+      <div>
+        <label>Resumo curto</label>
+        <textarea id="pSummary" placeholder="2–4 linhas..."></textarea>
+      </div>
+      <div>
+        <label>Fluxograma (URL da imagem) – opcional</label>
+        <input id="pFlowUrl" placeholder="https://.../fluxo.png"/>
+        <div class="hint">Pode ser PNG/JPG/SVG hospedado (ex.: Firebase Storage, Cloudinary, etc.).</div>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:10px">
+      <div>
+        <label>Texto principal (HTML simples)</label>
+        <textarea id="pBodyHtml" placeholder="<p>...</p>"></textarea>
+        <div class="hint">Para começar simples: use &lt;p&gt;, &lt;ul&gt;, &lt;li&gt;, &lt;b&gt;.</div>
+      </div>
+    </div>
+
+    <div class="row cols-2" style="margin-top:10px">
+      <div>
+        <div>
+  <label>Sessões de medicações (até 6)</label>
+  <div class="hint">
+    <b>Sessão 1</b>: se nenhuma seleção, mostra <b>todas</b> as medicações ativas do <code>sv_meds</code>.<br/>
+    <b>Sessões 2–6</b>: se vazio (sem nome ou sem seleção), não aparece no protocolo.
+  </div>
+
+  <div id="protoSessionsWrap" class="sessWrap" style="margin-top:10px"></div>
+
+  <div class="btns" style="margin-top:10px">
+    <button class="btn" type="button" id="btnProtoSessionsClear">Limpar sessões</button>
+
+    <!-- opcional: manter um JSON legado escondido (não aparece) -->
+    <button class="btn" type="button" id="btnProtoAdvancedToggle">Avançado (JSON legado)</button>
+
+    <span class="status" id="protoSessionsStatus"></span>
+  </div>
+
+  <div id="protoAdvancedBox" style="display:none; margin-top:10px">
+    <label>Filtro legado (JSON) – opcional</label>
+    <textarea id="pMedsFilter" placeholder='{"groups":["Parada cardiorrespiratória"],"calcKeys":["GEN_STEPPER"]}'></textarea>
+    <div class="hint">Use somente se precisar do filtro antigo (ex.: <code>calcKeys</code>).</div>
+  </div>
+</div>
+      </div>
+      <div>
+        <div>
+  <label>Ativo?</label>
+  <select id="pActive">
+    <option value="true">Sim</option>
+    <option value="false">Não</option>
+  </select>
+
+  <div style="margin-top:10px">
+    <label>Exibir Materiais / Equipamentos?</label>
+    <select id="pShowMaterials">
+      <option value="true">Sim</option>
+      <option value="false">Não</option>
+    </select>
+    <div class="hint">Se “Não”, o bloco “Materiais / Equipamentos” não aparece na calculadora nem na impressão.</div>
+  </div>
+
+  <div class="hint" style="margin-top:10px">
+    Publicação: <b>/suaPagina.html?proto=SEU-SLUG&amp;public=1</b>
+  </div>
+</div>
+    </div>
+
+    <div class="btns" style="margin-top:10px">
+      <button class="btn primary" id="btnSaveProto">Salvar</button>
+      <button class="btn" id="btnResetProto">Limpar formulário</button>
+      <button class="btn danger" id="btnDeleteProto" style="display:none">Excluir</button>
+      <span class="status" id="protoStatus"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Protocolos cadastrados</h2>
+    <div class="hint" style="margin-bottom:10px">Clique em um protocolo para editar.</div>
+    <div id="protoList" class="small">Carregando…</div>
+  </div>
+
+</div>
+
+<script>
+/* =========================================================
+   1) FIREBASE CONFIG — COLE O SEU AQUI
+   ========================================================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyCblTyABmcZ3bxzXS0VkRZw0peFx8cNz1s",
+  authDomain: "pedfacil-46105.firebaseapp.com",
+  projectId: "pedfacil-46105",
+  storageBucket: "pedfacil-46105.firebasestorage.app",
+  messagingSenderId: "9002938400",
+  appId: "1:9002938400:web:538e507dff8ae07df08c45",
+  measurementId: "G-GQNPKX86K0"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+const urlParams = new URLSearchParams(window.location.search);
+const PUBLIC_MODE = urlParams.get("public") === "1";
+const PROTO_SLUG = (urlParams.get("proto") || "").trim();
+
+// Em modo público, escondemos abas/CRUD e mostramos só calculadora + protocolo
+if (PUBLIC_MODE){
+  const tabsEl = document.querySelector(".tabs");
+  if (tabsEl) tabsEl.style.display = "none";
+
+  // NÃO usa "modePill" aqui (ele ainda não foi declarado)
+  const modePillEl = document.getElementById("modePill");
+  if (modePillEl) modePillEl.textContent = "Modo: Público";
+}
+
+
+
+/* =========================================================
+   2) UTILITÁRIOS (formatação e arredondamentos)
+   ========================================================= */
+function toNum(v){ return Number(String(v).replace(',','.')); }
+function toNumOrNaN(v){
+  if (v === "" || v === null || v === undefined) return NaN;
+  return toNum(v);
+}
+  
+function fmtDateBR(iso){
+  const s = String(iso || "").trim();
+  // esperado: YYYY-MM-DD
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return s; // fallback se vier vazio ou diferente
+  const [y,m,d] = s.split("-");
+  return `${d}/${m}/${y}`;
+}
+
+
+function round1(x){
+  // arredonda matematicamente para 1 casa
+  return Math.round(x * 10) / 10;
+}
+function fmt1Smart(x){
+  // até 1 casa; se inteiro, sem ",0"
+  if (!isFinite(x)) return "—";
+  const r = round1(x);
+  return (Math.abs(r - Math.round(r)) < 1e-9) ? String(Math.round(r)) : String(r).replace('.',',');
+}
+  function fmt1NoZero(x){
+  if (!isFinite(x)) return "—";
+  const v = Math.round(x * 10) / 10;          // 1 casa
+  const s = String(v);
+  return s.includes('.') ? s.replace('.',',') : s; // sem ",0"
+}
+  function fmt2Smart(x){
+  if (!isFinite(x)) return "—";
+  const r = Math.round(x * 100) / 100;
+  const isInt = Math.abs(r - Math.round(r)) < 1e-9;
+  if (isInt) return String(Math.round(r));
+  // se 1 decimal suficiente, mantém 1; senão 2
+  const one = Math.round(r * 10) / 10;
+  if (Math.abs(one - r) < 1e-9) return String(one).replace('.',',');
+  return String(r).replace('.',',');
+}
+
+function fmtByRound(x, roundN){
+  if (!isFinite(x)) return "—";
+  const n = Math.max(0, parseInt(roundN || 0, 10));
+  if (n === 0) return String(Math.round(x));
+  const factor = Math.pow(10, n);
+  const r = Math.round(x * factor) / factor;
+  if (Math.abs(r - Math.round(r)) < 1e-9) return String(Math.round(r));
+  return String(r).replace('.',',');
+}
+
+  function fmt0(x){
+  if (!isFinite(x)) return "—";
+  return String(Math.round(x));
+}
+
+// mL com 1 casa, mas se terminar em ,0 vira inteiro (você já tem fmt1Smart, vamos garantir uso correto)
+function fmtMlSmart1(x){
+  return fmt1Smart(x); // mantém sua regra: 1 casa, sem ,0
+}
+
+// DILUIÇÃO sem casas decimais (arredondar)
+function round0(x){
+  if (!isFinite(x)) return NaN;
+  return Math.round(x);
+}
+
+// Frequência (n “vezes ao dia”) -> texto e intervalo
+// Frequência (n “vezes ao dia”) -> texto e intervalo
+function freqToTextAndHours(freq){
+  const raw0 = (freq === null || freq === undefined) ? "" : String(freq).trim();
+  const raw = raw0.toLowerCase();
+
+  // 1) Se vier número (ou string numérica), mantém compatibilidade
+  const n = Number(raw);
+  if (Number.isFinite(n)) {
+    // CONVENÇÃO: 0 = ACM (não é dose única)
+    if (n === 0) {
+      return { txt: "ACM", hours: NaN, perDay: NaN, isOnce: false };
+    }
+    // (opcional) negativos = dose única, se você quiser esse atalho
+    if (n < 0) {
+      return { txt: "dose única", hours: NaN, perDay: 0, isOnce: true };
+    }
+
+    const f = parseInt(String(n), 10);
+    if (!isFinite(f) || f <= 0) return {txt:"—", hours:NaN, perDay:NaN, isOnce:false};
+
+    // seu mapeamento explícito (mantido)
+    const map = {
+      1:  {txt:"24/24 horas", hours:24},
+      2:  {txt:"12/12 horas", hours:12},
+      3:  {txt:"8/8 horas",   hours:8},
+      4:  {txt:"6/6 horas",   hours:6},
+      6:  {txt:"4/4 horas",   hours:4},
+      8:  {txt:"3/3 horas",   hours:3},
+      12: {txt:"2/2 horas",   hours:2},
+      24: {txt:"1/1 hora",    hours:1},
+      48: {txt:"30/30 minutos", hours:0.5},
+      72: {txt:"20/20 minutos", hours:(20/60)}
+    };
+
+    if (map[f]) return {...map[f], perDay:f, isOnce:false};
+
+    // fallback genérico
+    const hours = 24 / f;
+    if (hours >= 1) return {txt:`a cada ${fmt1Smart(hours)} h`, hours, perDay:f, isOnce:false};
+    return {txt:`a cada ${fmt1Smart(hours*60)} min`, hours, perDay:f, isOnce:false};
+  }
+
+  // 2) Se vier texto: DOSE ÚNICA (uma vez / agora / stat)
+  const onceTokens = new Set([
+    "once","stat","now","agora",
+    "dose_unica","dose-unica","unica","dose unica","dose única",
+    "uma vez","1 vez","1x","1x apenas","apenas uma vez"
+  ]);
+  if (onceTokens.has(raw)){
+    // se o usuário escreveu "agora/stat", deixa mais explícito
+    const txt = (raw === "agora" || raw === "stat" || raw === "now") ? "agora (dose única)" : "dose única";
+    return { txt, hours: NaN, perDay: 0, isOnce: true };
+  }
+
+  // 3) Texto: ACM / SOS / PRN / se necessário
+  const prnTokens = new Set(["acm","sos","prn","se necessario","se necessário"]);
+  if (prnTokens.has(raw)){
+    return { txt: "ACM", hours: NaN, perDay: NaN, isOnce: false };
+  }
+
+  // 4) Texto: formatos tipo "12/12" ou "q12h"
+  const m1 = raw.match(/^(\d{1,2})\s*\/\s*\1$/);
+  if (m1){
+    const h = Number(m1[1]);
+    if (Number.isFinite(h) && h > 0){
+      return { txt: `${h}/${h} horas`, hours: h, perDay: 24/h, isOnce: false };
+    }
+  }
+
+  const m2 = raw.match(/(?:q|cada)\s*(\d{1,2})\s*h/);
+  if (m2){
+    const h = Number(m2[1]);
+    if (Number.isFinite(h) && h > 0){
+      return { txt: `a cada ${h} h`, hours: h, perDay: 24/h, isOnce: false };
+    }
+  }
+
+  // 5) fallback: imprime o texto como veio
+  return { txt: raw0, hours: NaN, perDay: NaN, isOnce: false };
+}
+
+
+
+
+function clamp(x, min, max){
+  return Math.min(Math.max(x, min), max);
+}
+
+  function decimalsOf(n){
+  if (!isFinite(n)) return 0;
+  const s = String(n);
+  if (s.includes("e-")){
+    const p = parseInt(s.split("e-")[1], 10);
+    return isFinite(p) ? p : 0;
+  }
+  const i = s.indexOf(".");
+  return i >= 0 ? (s.length - i - 1) : 0;
+}
+
+function roundTo(n, decimals){
+  const d = Math.max(0, decimals | 0);
+  const f = Math.pow(10, d);
+  return Math.round(n * f) / f;
+}
+
+function normTxt(s){
+  return String(s || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")  // remove acentos
+    .trim();
+}
+
+/**
+ * Aplica filtro de medicações do protocolo.
+ * Regra:
+ * - Dentro de cada lista (groups/names/calcKeys) é OR
+ * - Entre chaves diferentes é AND
+ *
+ * Suporta:
+ *  - groups: ["..."]
+ *  - calcKeys: ["..."]
+ *  - names: ["..."]  (por padrão faz "contains" em med.name)
+ *  - namesMode: "contains" | "equals" (opcional)
+ */
+function applyMedsFilter(list, filterObj){
+  let out = Array.isArray(list) ? list.slice() : [];
+  const f = (filterObj && typeof filterObj === "object") ? filterObj : {};
+
+  // A) groups (case-insensitive, ignora acento)
+  if (Array.isArray(f.groups) && f.groups.length){
+    const setG = new Set(f.groups.map(normTxt));
+    out = out.filter(m => setG.has(normTxt(m.group)));
+  }
+
+  // B) calcKeys (mantém case-sensitive, como você já faz)
+  if (Array.isArray(f.calcKeys) && f.calcKeys.length){
+    const setK = new Set(f.calcKeys.map(x => String(x)));
+    out = out.filter(m => setK.has(String(m.calcKey || "")));
+  }
+
+  // C) names (novo)
+  if (Array.isArray(f.names) && f.names.length){
+    const mode = String(f.namesMode || "contains").toLowerCase(); // contains | equals
+    const needles = f.names.map(normTxt).filter(Boolean);
+
+    out = out.filter(m => {
+      const hay = normTxt(m.name);
+      if (!hay) return false;
+
+      // OR dentro de names
+      return needles.some(n => {
+        if (!n) return false;
+        return (mode === "equals") ? (hay === n) : hay.includes(n);
+      });
+    });
+  }
+
+  return out;
+}
+
+  /* =========================================================
+   PROTOCOLOS — SESSÕES DE MEDICAÇÕES (UI + persistência)
+   ========================================================= */
+function isTrue(v){ return v === true || v === "true" || v === 1; }
+
+let protoSessionsState = Array.from({length:6}, (_,i) => ({
+  title: "",
+  groups: [],
+  medIds: [],
+  qG: "",
+  qM: "",
+  open: (i === 0)
+}));
+
+function toggleInArray(arr, val){
+  const s = String(val);
+  const i = arr.indexOf(s);
+  if (i >= 0) arr.splice(i, 1);
+  else arr.push(s);
+}
+
+function distinctGroupsFromMeds(list){
+  const set = new Set();
+  (list || []).forEach(m => {
+    const g = String(m.group || "").trim();
+    if (g) set.add(g);
+  });
+  return [...set].sort((a,b)=>normTxt(a).localeCompare(normTxt(b)));
+}
+
+function sortMedsByGroupName(list){
+  return [...(list||[])].sort((a,b)=>{
+    const ga = normTxt(a.group||"");
+    const gb = normTxt(b.group||"");
+    if (ga !== gb) return ga.localeCompare(gb);
+    return normTxt(a.name||"").localeCompare(normTxt(b.name||""));
+  });
+}
+
+function getMedById(id){
+  const sid = String(id);
+  return (medsCache || []).find(m => String(m.id) === sid) || null;
+}
+
+function clearProtoSessions(){
+    protoSessionsState = Array.from({length:6}, (_,i) => ({
+    title: "",
+    groups: [],
+    medIds: [],
+    qG: "",
+    qM: "",
+    open: (i === 0)
+  }));
+  renderProtoSessionsUI();
+}
+
+function protoSessionsToDoc(){
+  // salva sempre 6 posições (sessão 1..6)
+  return protoSessionsState.map(s => ({
+    title: String(s.title || "").trim(),
+    groups: Array.isArray(s.groups) ? s.groups.filter(Boolean) : [],
+    medIds: Array.isArray(s.medIds) ? s.medIds.filter(Boolean) : []
+  }));
+}
+
+function protoSessionsFromDoc(medSessions, legacyFilterObj){
+  // carrega 6 sessões; se não existir, tenta “puxar” grupos/names do legado pra Sessão 1
+  const src = Array.isArray(medSessions) ? medSessions : [];
+
+  protoSessionsState = Array.from({length:6}, (_,i) => {
+    const s = src[i] || {};
+    return {
+      title: String(s.title || ""),
+      groups: Array.isArray(s.groups) ? s.groups.map(String) : [],
+      medIds: Array.isArray(s.medIds) ? s.medIds.map(String) : [],
+      qG: "",
+      qM: "",
+      open: (i === 0)
+    };
+  });
+
+  // Se não veio medSessions e existir legado, tenta converter (sem perder o legado no textarea avançado)
+  const hasAnySession = protoSessionsState.some(s =>
+    (String(s.title||"").trim()) || (s.groups?.length) || (s.medIds?.length)
+  );
+
+  if (!hasAnySession && legacyFilterObj && typeof legacyFilterObj === "object"){
+    // groups do legado -> sessão 1
+    if (Array.isArray(legacyFilterObj.groups)) protoSessionsState[0].groups = legacyFilterObj.groups.map(String);
+
+    // names do legado -> tenta mapear para IDs
+    if (Array.isArray(legacyFilterObj.names) && legacyFilterObj.names.length){
+      const mode = String(legacyFilterObj.namesMode || "contains").toLowerCase();
+      const needles = legacyFilterObj.names.map(normTxt).filter(Boolean);
+
+      const ids = [];
+      (medsCache || []).forEach(m => {
+        const hay = normTxt(m.name);
+        const ok = needles.some(n => mode === "equals" ? (hay === n) : hay.includes(n));
+        if (ok) ids.push(String(m.id));
+      });
+
+      protoSessionsState[0].medIds = ids;
+    }
+  }
+
+  renderProtoSessionsUI();
+}
+
+function renderProtoSessionsUI(){
+  const wrap = document.getElementById("protoSessionsWrap");
+  if (!wrap) return;
+
+  if (!medsCache || !medsCache.length){
+    wrap.innerHTML = `<div class="small">Carregando medicações…</div>`;
+    return;
+  }
+
+  // garante 6 sessões sempre
+  if (!Array.isArray(protoSessionsState)) protoSessionsState = [];
+  while (protoSessionsState.length < 6){
+    protoSessionsState.push({ title:"", groups:[], medIds:[], qG:"", qM:"" });
+  }
+  protoSessionsState = protoSessionsState.slice(0,6);
+
+  const groupsAll = distinctGroupsFromMeds(medsCache);
+  const medsAll = sortMedsByGroupName(medsCache);
+  const medById = new Map(medsAll.map(m => [String(m.id), m]));
+
+  const html = protoSessionsState.map((s, idx) => {
+    const n = idx + 1;
+
+    const titleVal = escapeHtml(String(s.title || ""));
+    const qG = String(s.qG || "");
+    const qM = String(s.qM || "");
+
+    // Quando a busca está vazia, NÃO lista tudo (senão fica enorme).
+    // Mostra apenas os selecionados + chips; para adicionar, o usuário busca.
+    const groupsFiltered = qG.trim()
+      ? groupsAll.filter(g => normTxt(g).includes(normTxt(qG)))
+      : (Array.isArray(s.groups) ? s.groups : []);
+
+    const selectedMeds = (Array.isArray(s.medIds) ? s.medIds : [])
+      .map(id => medById.get(String(id)))
+      .filter(Boolean);
+
+    const medsFiltered = qM.trim()
+      ? medsAll.filter(m => {
+          const hay = `${normTxt(m.name)} ${normTxt(m.group)}`;
+          return hay.includes(normTxt(qM));
+        }).slice(0, 60)
+      : selectedMeds;
+
+    const chipsGroups = (s.groups || []).map(g => `
+      <span class="chip">
+        ${escapeHtml(g)}
+        <span class="x" onclick="protoSessRemove(${idx}, 'group', '${escJsStr(g)}')">×</span>
+      </span>
+    `).join("");
+
+    const chipsMeds = (s.medIds || []).map(id => {
+      const m = medById.get(String(id));
+      const label = m ? `${m.name}${m.group ? " • " + m.group : ""}` : `ID ${id}`;
+      return `
+        <span class="chip">
+          ${escapeHtml(label)}
+          <span class="x" onclick="protoSessRemove(${idx}, 'med', ${JSON.stringify(String(id))})">×</span>
+        </span>
+      `;
+    }).join("");
+
+    const groupsList = groupsFiltered.map(g => {
+      const checked = (s.groups || []).includes(g) ? "checked" : "";
+      return `
+        <label class="pickItem">
+          <input type="checkbox" ${checked}
+                 onchange="onchangeProtoSessGroup(${idx}, '${escJsStr(g)}', this.checked)"/>
+          <span>${escapeHtml(g)}</span>
+        </label>
+      `;
+    }).join("");
+
+    const medsList = medsFiltered.map(m => {
+      const mid = String(m.id);
+      const checked = (s.medIds || []).includes(mid) ? "checked" : "";
+      return `
+        <label class="pickItem">
+          <input type="checkbox" ${checked}
+                 onchange="onchangeProtoSessMed(${idx}, '${escJsStr(mid)}', this.checked)"/>
+          <span>${escapeHtml(m.name)} <span class="tag">${escapeHtml(m.group || "")}</span></span>
+        </label>
+      `;
+    }).join("");
+
+    const gHint = qG.trim() ? "" : `<div class="small" style="margin-top:6px">Digite para buscar e marcar grupos (opcional).</div>`;
+    const mHint = qM.trim() ? "" : `<div class="small" style="margin-top:6px">Digite para buscar e marcar medicações.</div>`;
+
+    // Sessão 1: dica de regra (pode ficar vazia e, no cálculo, vira “todas as ativas”)
+    const rule1 = (idx === 0)
+      ? `<div class="small" style="margin-top:6px">Regra: se Sessão 1 ficar sem seleção, a calculadora exibirá <b>todas</b> as medicações ativas.</div>`
+      : "";
+
+    // resumo no cabeçalho (para enxergar as 6 sessões sem rolar muito)
+    const gCount = (s.groups || []).length;
+const mCount = (s.medIds || []).length;
+
+const titleTrim = String(s.title || "").trim();
+const parts = [];
+
+parts.push(`Sessão ${n}`);
+
+// só mostra o título se você preencheu
+if (titleTrim) parts.push(`— ${escapeHtml(titleTrim)}`);
+
+// só mostra tags se >0
+if (mCount > 0) parts.push(`<span class="tag">${mCount} meds</span>`);
+if (gCount > 0) parts.push(`<span class="tag">${gCount} grps</span>`);
+
+const summary = parts.join(" ");
+
+
+    return `
+      <details class="card" style="padding:10px;border-radius:16px" ${s.open ? "open" : ""} ontoggle="onToggleProtoSess(${idx}, this.open)">
+        <summary style="cursor:pointer;font-weight:900;list-style:none">${summary}</summary>
+
+        <div style="margin-top:10px">
+          <div class="row">
+            <label class="lbl">Nome da Sessão ${n}</label>
+            <input class="inp" id="sessTitle_${idx}" value="${titleVal}"
+                   placeholder="Ex: doses de primeira linha"
+                   oninput="onchangeProtoSessTitle(${idx}, this.value)"/>
+          </div>
+
+          ${rule1}
+
+          <div class="pickRow" style="margin-top:10px">
+            <div class="pickBox">
+              <div class="small" style="font-weight:900;margin-bottom:6px">Selecionar GRUPOS (opcional)</div>
+              <input class="inp" id="sessQG_${idx}" placeholder="Buscar grupo…" value="${escapeHtml(qG)}"
+                     oninput="onchangeProtoSessQuery(${idx}, 'qG', this.value)"/>
+              <div class="chips">${chipsGroups || ""}</div>
+              ${gHint}
+              <div class="pickList">${groupsList || ""}</div>
+            </div>
+
+            <div class="pickBox">
+              <div class="small" style="font-weight:900;margin-bottom:6px">Selecionar MEDICAÇÕES</div>
+              <input class="inp" id="sessQM_${idx}" placeholder="Buscar medicação…" value="${escapeHtml(qM)}"
+                     oninput="onchangeProtoSessQuery(${idx}, 'qM', this.value)"/>
+              <div class="chips">${chipsMeds || ""}</div>
+              ${mHint}
+              <div class="pickList">${medsList || ""}</div>
+            </div>
+          </div>
+
+          <div class="small" style="margin-top:10px">
+            Dica: você pode combinar grupos e medicações. Se você marcar um grupo e uma medicação, ambas entram na sessão.
+          </div>
+        </div>
+      </details>
+    `;
+  }).join("");
+
+  wrap.innerHTML = html;
+}
+
+function rerenderProtoSessionsKeepFocus(focusId){
+  const el = focusId ? document.getElementById(focusId) : null;
+  const start = el && typeof el.selectionStart === "number" ? el.selectionStart : null;
+  const end = el && typeof el.selectionEnd === "number" ? el.selectionEnd : null;
+
+  renderProtoSessionsUI();
+
+  const el2 = focusId ? document.getElementById(focusId) : null;
+  if (el2){
+    el2.focus();
+    if (start !== null && end !== null && el2.setSelectionRange){
+      el2.setSelectionRange(start, end);
+    }
+  }
+}
+
+// setters internos (não re-renderizam; quem chama decide)
+function protoSessSetTitle(idx, v){
+  protoSessionsState[idx].title = String(v || "");
+}
+
+function protoSessSetQuery(idx, kind, v){
+  if (kind === "qG" || kind === "group") protoSessionsState[idx].qG = String(v || "");
+  else protoSessionsState[idx].qM = String(v || "");
+}
+
+function protoSessSetChecked(arr, val, checked){
+  if (!Array.isArray(arr)) return;
+  const v = String(val);
+  const i = arr.indexOf(v);
+  if (checked){
+    if (i < 0) arr.push(v);
+  } else {
+    if (i >= 0) arr.splice(i, 1);
+  }
+}
+
+function protoSessToggle(idx, kind, val, checked){
+  const s = protoSessionsState[idx];
+  if (kind === "group"){
+    if (!Array.isArray(s.groups)) s.groups = [];
+    protoSessSetChecked(s.groups, val, checked);
+  } else {
+    if (!Array.isArray(s.medIds)) s.medIds = [];
+    protoSessSetChecked(s.medIds, val, checked);
+  }
+}
+
+function protoSessRemove(idx, kind, val){
+  const s = protoSessionsState[idx];
+  const arr = (kind === "group") ? s.groups : s.medIds;
+  if (!Array.isArray(arr)) return;
+
+  const i = arr.indexOf(String(val));
+  if (i >= 0) arr.splice(i, 1);
+
+  rerenderProtoSessionsKeepFocus(kind === "group" ? `sessQG_${idx}` : `sessQM_${idx}`);
+}
+
+// handlers globais (usados nos oninput/onchange do HTML gerado)
+window.onchangeProtoSessTitle = function(idx, v){
+  protoSessSetTitle(idx, v);
+  rerenderProtoSessionsKeepFocus(`sessTitle_${idx}`);
+};
+
+window.onToggleProtoSess = function(idx, isOpen){
+  const s = protoSessionsState[idx];
+  if (!s) return;
+  s.open = !!isOpen;
+};
+
+window.onchangeProtoSessQuery = function(idx, kind, v){
+  protoSessSetQuery(idx, kind, v);
+  rerenderProtoSessionsKeepFocus(kind === "qG" ? `sessQG_${idx}` : `sessQM_${idx}`);
+};
+
+window.onchangeProtoSessGroup = function(idx, group, checked){
+  protoSessToggle(idx, "group", group, checked);
+  rerenderProtoSessionsKeepFocus(`sessQG_${idx}`);
+};
+
+window.onchangeProtoSessMed = function(idx, medId, checked){
+  protoSessToggle(idx, "med", medId, checked);
+  rerenderProtoSessionsKeepFocus(`sessQM_${idx}`);
+};
+
+/* =========================================================
+   3) CÁLCULOS (Peso calórico e SC)
+   ========================================================= */
+function hollidaySegarDailyMl(weightKg){
+  // 100 mL/kg primeiros 10
+  // 50 mL/kg próximos 10 (10-20)
+  // 20 mL/kg acima de 20
+  let w = Math.max(0, weightKg);
+  let ml = 0;
+  const first10 = Math.min(w, 10);
+  ml += first10 * 100;
+  w -= first10;
+
+  const next10 = Math.min(w, 10);
+  ml += next10 * 50;
+  w -= next10;
+
+  if (w > 0) ml += w * 20;
+  return ml;
+}
+function calcPcal(weightKg){
+  const daily = hollidaySegarDailyMl(weightKg);
+  return daily / 100;
+}
+function calcSC(weightKg){
+  // SC (m²) = (Peso×4 + 7) / (Peso + 90)
+  return (weightKg * 4 + 7) / (weightKg + 90);
+}
+
+/* =========================================================
+   4) REGISTRY DE CÁLCULOS (calcKey → função)
+   Você expande aqui quando quiser novas medicações.
+   ========================================================= */
+function buildRxLine({drug, presc, obs, subLines, stepperUI, extraHtml, controlsUI}){
+  return {
+    drug,
+    presc,
+    obs,
+    subLines: subLines || [],
+    stepperUI: stepperUI || null,
+    extraHtml: extraHtml || "",
+    controlsUI: Array.isArray(controlsUI) ? controlsUI : null
+  };
+}
+
+  // ================================
+// Helper: limita por máximo ao dia
+// Assinatura usada no seu código:
+// clampByMaxDay(valorPorDose, dosesPorDia, maxDia) -> retorna valorPorDose ajustado
+// ================================
+function clampByMaxDay(valuePerDose, dosesPerDay, maxPerDay) {
+  const v = Number(valuePerDose);
+  const n = Number(dosesPerDay);
+  const max = Number(maxPerDay);
+
+  // Se maxPerDay não existir/for inválido, não limita
+  if (!isFinite(v) || !isFinite(n) || n <= 0 || !isFinite(max) || max <= 0) return v;
+
+  const totalDay = v * n;
+  if (totalDay <= max) return v;
+
+  return max / n; // ajusta dose para não ultrapassar o máximo/dia
+}
+
+/*
+  Convenção: cada função recebe:
+   - med (doc Firestore)
+   - ctx: {weightKg, pcal, sc}
+   - runtime: {stepDose} (para stepper por med)
+*/
+const calcRegistry = {
+  TEXT_ONLY: (med, ctx, runtime) => {
+    const drug = formatDrugHeader(med);
+    const presc = med.textOnly || "—";
+    return buildRxLine({
+      drug,
+      presc,
+      obs: med.obs || ""
+    });
+  },
+  
+
+ COMPLETA_GERAL: (med, ctx, runtime) => {
+  const w = toNum(ctx.weightKg);
+  const p = med.params || {};
+
+  // ====== PARAMS (obrigatórios/recomendados) ======
+  const conc = toNum(p.concPerMl);
+  const concUnit = String(p.concUnit || "mg/mL");
+
+  const mgPerVial = toNum(p.mgPerVial);
+   // ====== rótulo da unidade (frasco/comprimido/cápsula/ampola/seringa etc) ======
+const unitLabelSing = String(p.unitLabelSing || p.unitLabel || "frasco").trim();
+const unitLabelPlur = String(p.unitLabelPlur || (unitLabelSing ? (unitLabelSing + "s") : "frascos")).trim();
+
+
+  const freqDefault = (p.freq === undefined) ? 1 : p.freq;
+
+  const doseUnit = String(p.doseUnit || "mg/kg/dose");
+  const dosesPerKg = [
+    toNum(p.dose1PerKg ?? 0),
+    toNum(p.dose2PerKg ?? 0),
+    toNum(p.dose3PerKg ?? 0),
+    toNum(p.dose4PerKg ?? 0),
+    toNum(p.dose5PerKg ?? 0),
+    toNum(p.dose6PerKg ?? 0),
+  ];
+
+  // >>>>>>>>>>>> ADICIONE AQUI (logo abaixo do maxDay) <<<<<<<<<<<<
+  const maxDay  = toNum(p.maxPerDay  ?? NaN);   // máximo por DIA
+  const maxDose = toNum(p.maxPerDose ?? NaN);  // máximo por DOSE
+  // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+  const reconMlPerVial = toNum(p.reconMlPerVial ?? 0);
+  const reconLabel = String(p.reconLabel || "AD");
+
+  // via (por resposta) + saneamento do "PURO"
+  function normalizeRoute(v){
+    let s = String(v ?? "").trim();
+    if (!s) return "";
+    s = s.toUpperCase();
+    if (s === "PURO" || s === "DILUIDO" || s === "DILUÍDO") return "";
+    if (s === "IV") s = "EV";
+    return s;
+  }
+  function getRouteForIndex(i){
+    const raw =
+      p[`route${i+1}`] ??
+      p.route ??
+      med[`route${i+1}`] ??
+      med.route ??
+      "EV";
+    const norm = normalizeRoute(raw);
+    return norm || "EV";
+  }
+
+  const dilTargetPerMl = toNum(p.dilTargetPerMl ?? 0);
+  const diluentLabel = String(p.diluentLabel || "SF 0,9%");
+  const dilIsOn = isFinite(dilTargetPerMl) && dilTargetPerMl > 0;
+
+  const infTimeTxt = String(p.infTime || "").trim();
+  const infTimeMin = toNum(p.infTimeMin ?? NaN);
+
+  const pumpOn = !!p.pumpOn;
+
+  const refOn = !!p.refOn;
+  const refMode = String(p.refMode || "mg/kg/dia").toLowerCase().trim();
+
+  const drug = formatDrugHeader(med);
+  if (!isFinite(w) || w <= 0) return buildRxLine({ drug, presc:"ERRO: peso inválido.", obs: med.obs || "" });
+  if (!isFinite(conc) || conc <= 0) return buildRxLine({ drug, presc:"ERRO: concPerMl inválida em params.", obs: med.obs || "" });
+  if (!isFinite(mgPerVial) || mgPerVial <= 0) return buildRxLine({ drug, presc:"ERRO: mgPerVial inválida em params.", obs: med.obs || "" });
+
+  const labels = [
+    (med.resp1Label || "Resposta 1").trim(),
+    (med.resp2Label || "Resposta 2").trim(),
+    (med.resp3Label || "Resposta 3").trim(),
+    (med.resp4Label || "Resposta 4").trim(),
+    (med.resp5Label || "Resposta 5").trim(),
+    (med.resp6Label || "Resposta 6").trim(),
+  ];
+
+  const lines = [];
+
+  for (let i = 0; i < 6; i++){
+    const perKg = dosesPerKg[i];
+    const routeThis = getRouteForIndex(i);
+    if (!isFinite(perKg) || perKg <= 0) continue;
+
+    const freqThisRaw = (p[`freq${i+1}`] !== undefined) ? p[`freq${i+1}`] : freqDefault;
+    const fMeta = freqToTextAndHours(freqThisRaw);
+
+    const perDay = isFinite(fMeta.perDay) ? fMeta.perDay : NaN;
+    const isOnce = !!fMeta.isOnce;
+
+    let refModeThis = String((p[`refMode${i+1}`] !== undefined) ? p[`refMode${i+1}`] : (p.refMode || "mg/kg/dia")).toLowerCase().trim();
+    if (isOnce && refModeThis.includes("dia")) refModeThis = "mg/kg/dose";
+
+    // dose base teórica (por dose)
+    const doseBaseRaw = perKg * w;
+
+    // >>>>>>>>>>>> SUBSTITUA SEU BLOCO DE CLAMP POR ESTE <<<<<<<<<<<<
+    // 1) clamp por DOSE (sempre que maxDose existir)
+    let doseBase = doseBaseRaw;
+
+    const limitedByMaxDose =
+      (isFinite(maxDose) && maxDose > 0 && isFinite(doseBase) && doseBase > (maxDose + 1e-9));
+
+    if (limitedByMaxDose){
+      doseBase = maxDose;
+    }
+
+    // 2) clamp por DIA (quando não for dose única e der para calcular perDay)
+    const dayRaw = (!isOnce && isFinite(perDay) && perDay > 0) ? (doseBaseRaw * perDay) : NaN;
+
+    if (!isOnce && isFinite(perDay) && perDay > 0){
+      // aplica maxDay SOBRE a doseBase (que pode já ter sido limitada por dose)
+      doseBase = clampByMaxDay(doseBase, perDay, maxDay);
+    }
+
+    const dayAfter = (!isOnce && isFinite(perDay) && perDay > 0) ? (doseBase * perDay) : NaN;
+
+    const limitedByMaxDay =
+      (!isOnce && isFinite(maxDay) && maxDay > 0 && isFinite(dayAfter) && dayAfter > (maxDay + 1e-9));
+
+    const limitedAny = limitedByMaxDose || limitedByMaxDay;
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+    const perKgRealPerDose = (isFinite(w) && w > 0) ? (doseBase / w) : NaN;
+    const perKgRealPerDay  = (!isOnce && isFinite(perDay) && perDay > 0 && isFinite(w) && w > 0)
+      ? ((doseBase * perDay) / w)
+      : NaN;
+
+    const vials = Math.max(1, Math.ceil(doseBase / mgPerVial));
+
+    const reconTotal = (isFinite(reconMlPerVial) && reconMlPerVial > 0) ? (reconMlPerVial * vials) : 0;
+
+    const doseMl = doseBase / conc;
+
+    const diluentMl = dilIsOn ? round0(doseBase / dilTargetPerMl) : 0;
+
+    const totalVol = doseMl + (isFinite(diluentMl) ? diluentMl : 0);
+
+    const pumpType = (totalVol <= 60) ? "BS" : "BIC";
+
+    let mlh = NaN;
+    if (isFinite(infTimeMin) && infTimeMin > 0){
+      mlh = totalVol / (infTimeMin / 60);
+    } else if (isFinite(fMeta.hours) && fMeta.hours > 0){
+      mlh = totalVol / fMeta.hours;
+    }
+
+    let refTxt = "";
+    if (refOn){
+      const isDay = refModeThis.includes("dia");
+
+      // >>>>>>>>>>>> TROQUE limitedByMaxDay por limitedAny AQUI <<<<<<<<<<<<
+      const refVal = limitedAny
+        ? (isDay ? perKgRealPerDay : perKgRealPerDose)
+        : (isDay ? (isFinite(perDay) ? (perKg * perDay) : perKg) : perKg);
+      // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+      const unitTxt = concUnit.startsWith("UI") ? (isDay ? " UI/kg/dia" : " UI/kg/dose")
+                    : concUnit.startsWith("mcg") ? (isDay ? " mcg/kg/dia" : " mcg/kg/dose")
+                    : (isDay ? " mg/kg/dia" : " mg/kg/dose");
+
+      refTxt = `(${fmt2Smart(refVal).replace('.',',')}${unitTxt})`;
+    }
+
+    const unitTxt = (vials > 1) ? unitLabelPlur : unitLabelSing;
+
+const reconPart = (reconTotal > 0)
+  ? `${vials} ${escapeHtml(unitTxt)} + ${fmt0(reconTotal)} mL de ${escapeHtml(reconLabel)}: `
+  : "";
+
+
+    const doseMlTxt = `${fmtMlSmart1(doseMl)} mL`;
+
+    const dilPart = (dilIsOn && diluentMl > 0)
+      ? ` e diluir em ${fmt0(diluentMl)} mL de ${escapeHtml(diluentLabel)}, `
+      : `, `;
+
+    const baseTxt = `${reconPart}${doseMlTxt}${dilPart}${escapeHtml(routeThis)}, ${escapeHtml(fMeta.txt)}`;
+
+    const infPart = infTimeTxt ? `, infundir em ${escapeHtml(infTimeTxt)}` : "";
+
+    const pumpPart = (pumpOn && isFinite(mlh))
+      ? `, ${pumpType} ${fmtMlSmart1(mlh)} mL/h`
+      : "";
+
+    const label = labels[i] || `Resposta ${i+1}`;
+
+    // >>>>>>>>>>>> TROQUE limitedByMaxDay por limitedAny AQUI <<<<<<<<<<<<
+    const limitNote = limitedAny ? `\n[[LIMIT_MAX]]` : "";
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+    lines.push(`${escapeHtml(label)}: ${baseTxt}${infPart}${pumpPart} ${refTxt}${limitNote}`.trim());
+  }
+
+  if (!lines.length){
+    return buildRxLine({
+      drug,
+      presc: "Sem doses configuradas (dose1PerKg..dose6PerKg).",
+      obs: med.obs || ""
+    });
+  }
+
+  return buildRxLine({
+    drug,
+    presc: lines.join(" | "),
+    obs: med.obs || ""
+  });
+},
+
+  // EPINEFRINA PCR:
+  // Após diluir 1 mL (1 mg/mL) + 9 mL AD => 0,1 mg/mL
+  // Dose: 0,01 mg/kg => volume = 0,1 mL/kg
+  // Máximo: 1 mg => volume máximo 10 mL
+  EPI_CPR: (med, ctx, runtime) => {
+    const w = ctx.weightKg;
+    const params = med.params || {};
+    const flushMl = toNum(params.flushMl ?? 5);
+    const maxMg = toNum(params.maxMg ?? 1);
+
+    let volMl = w * 0.1;             // 0,1 mL/kg
+    // max dose mg = 1 mg; concentração 0,1 mg/mL => volume max = 10 mL
+    const maxVol = (maxMg / 0.1);
+    volMl = clamp(volMl, 0, maxVol);
+    volMl = round1(volMl);
+
+    const drug = formatDrugHeader(med);
+    const presc =
+      `${med.dilution || ""}: ADMINISTRAR ${fmt1Smart(volMl)} mL EV BOLUS a cada 3 a 5 minutos` +
+      (isFinite(flushMl) ? ` + FLUSH com ${fmt1Smart(flushMl)} mL de SF 0,9% após` : "");
+
+    return buildRxLine({
+      drug,
+      presc,
+      obs: med.obs || ""
+    });
+  },
+
+  // AMIODARONA:
+  // Dose 5 mg/kg (máx 150 mg)
+  // Apresentação 50 mg/mL amp 3 mL (150 mg)
+  // Diluição padrão: 3 mL + 57 mL (total 60 mL) => 150 mg/60 mL = 2,5 mg/mL
+  // Volume (mL) = doseMg / 2,5 = (w*5)/2,5 = w*2
+  AMIO_CPR: (med, ctx, runtime) => {
+    const w = ctx.weightKg;
+    const params = med.params || {};
+    const maxMg = toNum(params.maxMg ?? 150);
+    const vehicle = params.vehicle || "SG5%";
+
+    let doseMg = w * 5;
+    doseMg = clamp(doseMg, 0, maxMg);
+
+    // conc após diluição 60 mL: 2,5 mg/mL
+    const conc = 2.5;
+    let volMl = doseMg / conc;
+    volMl = round1(volMl);
+
+    const drug = formatDrugHeader(med);
+    const dil = med.dilution || `3 mL + 57 mL de ${vehicle}`;
+    const presc = `${dil}: ADMINISTRAR ${fmt1Smart(volMl)} mL EV LENTO em 5 a 10 minutos.`;
+
+    return buildRxLine({
+      drug,
+      presc,
+      obs: med.obs || ""
+    });
+  },
+
+  // DESFIBRILAÇÃO (2 respostas):
+  // resposta 1: 2 J/kg
+  // resposta 2: 4 J/kg (e segue escalonando; aqui mostramos a segunda como exemplo)
+  // máximo 200 J
+  DEFIB_2RESP: (med, ctx, runtime) => {
+    const w = ctx.weightKg;
+    const params = med.params || {};
+    const maxJ = toNum(params.maxJ ?? 200);
+
+    const j1 = clamp(2 * w, 0, maxJ);
+    const j2 = clamp(4 * w, 0, maxJ);
+
+    const drug = formatDrugHeader(med);
+
+    const r1Label = (med.resp1Label || "Resposta 1").trim();
+    const r2Label = (med.resp2Label || "Resposta 2").trim();
+
+    const prescLines = [];
+    prescLines.push(`${r1Label}: DESFIBRILAÇÃO ${fmt1Smart(j1)} J`);
+    prescLines.push(`${r2Label}: DESFIBRILAÇÃO ${fmt1Smart(j2)} J`);
+
+    const presc = prescLines.join(" | ");
+
+    const obs = med.obs || "Afastar todos e oxigênio. Escalonar (2 → 4 → 6 → 8 J/kg) até máximo 200 J, conforme protocolo local.";
+
+    return buildRxLine({
+      drug,
+      presc,
+      obs
+    });
+  },
+  // =========================================================
+  // NOVAS CALCKEY
+  // =========================================================
+
+  // 1) CARDIOVERSÃO SINCRONIZADA (2 respostas): 1 J/kg e 2 J/kg
+  CARDIOV_2RESP: (med, ctx, runtime) => {
+    const w = ctx.weightKg;
+    const j1 = round1(1 * w);
+    const j2 = round1(2 * w);
+
+    const drug = formatDrugHeader(med);
+    const r1 = (med.resp1Label || "Dose 1").trim();
+    const r2 = (med.resp2Label || "Dose 2").trim();
+
+    const presc = `${r1}: CARDIOVERSÃO SINCRONIZADA ${fmt1Smart(j1)} J | ${r2}: CARDIOVERSÃO SINCRONIZADA ${fmt1Smart(j2)} J`;
+    const obs = med.obs || "";
+
+    return buildRxLine({ drug, presc, obs });
+  },
+
+  // 2) ATROPINA 0,5 mg/mL: dose1 0,02 mg/kg (min 0,1 mg; max 1 mg), dose2 0,04 mg/kg (max 1 mg)
+  ATROP_2RESP: (med, ctx, runtime) => {
+    const w = ctx.weightKg;
+    const params = med.params || {};
+    const concMgPerMl = toNum(params.concMgPerMl ?? 0.5); // 0,5 mg/mL
+    const minMg = toNum(params.minMg ?? 0.1);
+    const maxMg = toNum(params.maxMg ?? 1);
+
+    let mg1 = w * 0.02;
+    mg1 = clamp(mg1, minMg, maxMg);
+
+    let mg2 = w * 0.04;
+    mg2 = clamp(mg2, 0, maxMg);
+
+    let ml1 = mg1 / concMgPerMl;
+    let ml2 = mg2 / concMgPerMl;
+
+    ml1 = round1(ml1);
+    ml2 = round1(ml2);
+
+    const drug = formatDrugHeader(med);
+    const r1 = (med.resp1Label || "Dose 1").trim();
+    const r2 = (med.resp2Label || "Dose 2").trim();
+
+    const presc = `${r1}: ADMINISTRAR ${fmt1Smart(ml1)} mL EV BOLUS | ${r2}: ADMINISTRAR ${fmt1Smart(ml2)} mL EV BOLUS`;
+    const obs = med.obs || "";
+
+    return buildRxLine({ drug, presc, obs });
+  },
+
+  // 3) ADENOSINA 3 mg/mL (amp 2 mL): 0,1 mg/kg e 0,2 mg/kg; teto 12 mg
+  ADENO_2RESP: (med, ctx, runtime) => {
+    const w = ctx.weightKg;
+    const params = med.params || {};
+    const concMgPerMl = toNum(params.concMgPerMl ?? 3);  // 3 mg/mL
+    const maxMg = toNum(params.maxMg ?? 12);            // teto 12 mg
+
+    let mg1 = w * 0.1;
+    mg1 = clamp(mg1, 0, maxMg);
+
+    let mg2 = w * 0.2;
+    mg2 = clamp(mg2, 0, maxMg);
+
+    let ml1 = mg1 / concMgPerMl;
+    let ml2 = mg2 / concMgPerMl;
+
+    ml1 = round1(ml1);
+    ml2 = round1(ml2);
+
+    const drug = formatDrugHeader(med);
+    const r1 = (med.resp1Label || "Dose 1").trim();
+    const r2 = (med.resp2Label || "Dose 2").trim();
+
+    const presc = `${r1}: ADMINISTRAR ${fmt1Smart(ml1)} mL EV BOLUS | ${r2}: ADMINISTRAR ${fmt1Smart(ml2)} mL EV BOLUS`;
+    const obs = med.obs || "";
+
+    return buildRxLine({ drug, presc, obs });
+  },
+
+  // 4) BICARBONATO 8,4%: 1 mEq/kg e 1 mEq = 1 mL; rediluir 1:1 (volume final dobro)
+  BICARB_1RESP: (med, ctx, runtime) => {
+    const w = ctx.weightKg;
+
+    const mlDrug = round1(w * 1);        // 1 mL/kg
+    const mlDil  = round1(mlDrug * 1);   // 1:1 => mesmo volume de diluente
+
+    const drug = formatDrugHeader(med);
+    const presc = `${fmt1Smart(mlDrug)} mL + ${fmt1Smart(mlDil)} mL de AD EV lento`;
+    const obs = med.obs || "";
+
+    return buildRxLine({ drug, presc, obs });
+  },
+
+  // 5) SF 0,9%: 10 mL/kg e 20 mL/kg
+  SF_2RESP: (med, ctx, runtime) => {
+    const w = ctx.weightKg;
+    const ml1 = round1(10 * w);
+    const ml2 = round1(20 * w);
+
+    const drug = formatDrugHeader(med);
+    const r1 = (med.resp1Label || "Dose 1").trim();
+    const r2 = (med.resp2Label || "Dose 2").trim();
+
+    const presc = `${r1}: ${fmt1Smart(ml1)} mL EV BOLUS | ${r2}: ${fmt1Smart(ml2)} mL EV BOLUS`;
+    const obs = med.obs || "";
+
+    return buildRxLine({ drug, presc, obs });
+  },
+
+  // 6) RINGER LACTATO: 10 mL/kg e 20 mL/kg
+  RL_2RESP: (med, ctx, runtime) => {
+    const w = ctx.weightKg;
+    const ml1 = round1(10 * w);
+    const ml2 = round1(20 * w);
+
+    const drug = formatDrugHeader(med);
+    const r1 = (med.resp1Label || "Dose 1").trim();
+    const r2 = (med.resp2Label || "Dose 2").trim();
+
+    const presc = `${r1}: ${fmt1Smart(ml1)} mL EV BOLUS | ${r2}: ${fmt1Smart(ml2)} mL EV BOLUS`;
+    const obs = med.obs || "";
+
+    return buildRxLine({ drug, presc, obs });
+  },
+
+  // 7) GLICOSE 50% (500 mg/mL): 200 mg/kg; no mínimo 1:1 (dilui 1:1)
+  // Você pediu 2 respostas (ex 10 kg: 4 mL+4 mL e 8 mL+8 mL)
+  // Isso equivale a 200 mg/kg (dose1) e 400 mg/kg (dose2) com conc 500 mg/mL.
+  GLIC50_2RESP: (med, ctx, runtime) => {
+    const w = ctx.weightKg;
+    const params = med.params || {};
+    const concMgPerMl = toNum(params.concMgPerMl ?? 500); // 500 mg/mL
+
+    const mg1 = w * 200;   // 200 mg/kg
+    const mg2 = w * 400;   // segunda dose = dobrada (exemplo que você deu)
+
+    let ml1 = mg1 / concMgPerMl;
+    let ml2 = mg2 / concMgPerMl;
+
+    ml1 = round1(ml1);
+    ml2 = round1(ml2);
+
+    const drug = formatDrugHeader(med);
+    const r1 = (med.resp1Label || "Dose 1").trim();
+    const r2 = (med.resp2Label || "Dose 2").trim();
+
+    const presc = `${r1}: ${fmt1Smart(ml1)} mL + ${fmt1Smart(ml1)} mL de AD EV BOLUS | ${r2}: ${fmt1Smart(ml2)} mL + ${fmt1Smart(ml2)} mL de AD EV BOLUS`;
+    const obs = med.obs || "Diluir no mínimo 1:1.";
+
+    return buildRxLine({ drug, presc, obs });
+  },
+
+  // 8) GLUCONATO DE CÁLCIO 10% (100 mg/mL): 60 mg/kg e 100 mg/kg; teto 4000 mg; rediluição máx 1:1
+  CA_GLUC_2RESP: (med, ctx, runtime) => {
+    const w = ctx.weightKg;
+    const params = med.params || {};
+    const concMgPerMl = toNum(params.concMgPerMl ?? 100); // 100 mg/mL
+    const maxMg = toNum(params.maxMg ?? 4000);           // teto 4000 mg
+
+    let mg1 = w * 60;
+    let mg2 = w * 100;
+
+    mg1 = clamp(mg1, 0, maxMg);
+    mg2 = clamp(mg2, 0, maxMg);
+
+    let ml1 = mg1 / concMgPerMl;
+    let ml2 = mg2 / concMgPerMl;
+
+    ml1 = round1(ml1);
+    ml2 = round1(ml2);
+
+    const drug = formatDrugHeader(med);
+    const r1 = (med.resp1Label || "Dose 1").trim();
+    const r2 = (med.resp2Label || "Dose 2").trim();
+
+    const presc = `${r1}: ${fmt1Smart(ml1)} mL + ${fmt1Smart(ml1)} mL de AD EV lento | ${r2}: ${fmt1Smart(ml2)} mL + ${fmt1Smart(ml2)} mL de AD EV lento`;
+    const obs = med.obs || "Rediluição máxima 1:1.";
+
+    return buildRxLine({ drug, presc, obs });
+  },
+
+  // 9) CETAMINA 50 mg/mL: stepper 1–5 mg/kg, start 2 mg/kg; volume = (mg/kg * peso) / conc
+  // + flush opcional (params.flushMl)
+  KETAMINE_STEPPER: (med, ctx, runtime) => {
+    const w = ctx.weightKg;
+    const params = med.params || {};
+    const concMgPerMl = toNum(params.concMgPerMl ?? 50); // 50 mg/mL
+    const flushMl = toNum(params.flushMl ?? 5);
+
+    const stepper = med.stepper || {};
+    const start = toNum(stepper.start ?? params.start ?? 2); // mg/kg
+    const step  = toNum(stepper.step  ?? params.step  ?? 0.5);
+    const min   = toNum(stepper.min   ?? params.min   ?? 1);
+    const max   = toNum(stepper.max   ?? params.max   ?? 5);
+
+    let mgkg = (runtime && typeof runtime.stepDose === "number") ? runtime.stepDose : start;
+    mgkg = clamp(mgkg, min, max);
+
+    const mg = mgkg * w;
+    let ml = mg / concMgPerMl;
+    ml = round1(ml);
+
+    const drug = formatDrugHeader(med);
+    const prescBase = `APLICAR ${fmt1Smart(ml)} mL EV BOLUS`;
+    const presc = isFinite(flushMl) ? `${prescBase} + ${fmt1Smart(flushMl)} mL de SF 0,9% EV após` : prescBase;
+
+    const refTxt = buildRefText(med, `${fmt2Smart(mgkg).replace('.',',')} mg/kg`);
+    const prescWithRef = refTxt ? `${presc} ${refTxt}` : `${presc} (${fmt2Smart(mgkg).replace('.',',')} mg/kg)`;
+
+    return buildRxLine({
+      drug,
+      presc: prescWithRef,
+      obs: med.obs || "",
+      stepperUI: {
+        key: med.id,
+        dose: mgkg,
+        start,
+        step,
+        min,
+        max,
+        unit: "mg/kg"
+      }
+    });
+  },
+
+  // NORADRENALINA com stepper:
+  // Diluição exemplo: 5 mL (1 mg/mL) + 95 mL = 100 mL
+  // Total 5 mg = 5000 mcg → 50 mcg/mL
+  // mL/h = dose(mcg/kg/min) * peso(kg) * 60 / conc(mcg/mL)
+  NOREPI_STEPPER: (med, ctx, runtime) => {
+    const w = ctx.weightKg;
+    const params = med.params || {};
+    const stepper = med.stepper || {};
+    const concMcgPerMl = toNum(params.concMcgPerMl ?? stepper.concMcgPerMl ?? 50);
+
+    const start = toNum(stepper.start ?? params.start ?? 0.05);
+    const step  = toNum(stepper.step  ?? params.step  ?? 0.05);
+    const max   = toNum(stepper.max   ?? params.max   ?? 2);
+
+    // dose atual em runtime
+    let dose = (runtime && typeof runtime.stepDose === "number") ? runtime.stepDose : start;
+    dose = clamp(dose, start, max);
+
+    // mL/h:
+    const mlh = (dose * w * 60) / concMcgPerMl;
+
+    const drug = formatDrugHeader(med);
+    const presc = `${med.dilution || ""}: CORRER em BIC ${fmt1Smart(mlh)} mL/h`;
+
+    const refTxt = buildRefText(med, `${fmt2Smart(dose).replace('.',',')} mcg/kg/min`);
+    const prescWithRef = refTxt ? `${presc} ${refTxt}` : `${presc} (${fmt2Smart(dose).replace('.',',')} mcg/kg/min)`;
+
+    // Stepper UI: a célula de prescrição terá botões +/-
+    return buildRxLine({
+      drug,
+      presc: prescWithRef,
+      obs: med.obs || "",
+      stepperUI: {
+        key: med.id,
+        dose,
+        start,
+        step,
+        max
+      }
+    });
+  },
+  /* =========================================================
+   GENÉRICOS (poucos calcKey, muitas drogas via params JSON)
+   ========================================================= */
+
+// A) mg/kg → mg (clamps) → mL (conc mg/mL), 2 respostas
+// Params esperados:
+//  concMgPerMl (obrigatório)
+//  dose1 (mg/kg), dose2 (mg/kg)
+//  minMg1 (opcional), minMg2 (opcional)
+//  maxMg (opcional, teto geral em mg)
+//  round (opcional: casas decimais no volume; default 1)
+//  suffix (opcional: "mL EV bolus", etc)
+GEN_2RESP_MGKG_TO_ML: (med, ctx, runtime) => {
+  const w = ctx.weightKg;
+  const p = med.params || {};
+
+  const conc = toNum(p.concMgPerMl);
+  if (!isFinite(conc) || conc <= 0){
+    return buildRxLine({
+      drug: formatDrugHeader(med),
+      presc: "ERRO: concMgPerMl inválida nos parâmetros.",
+      obs: med.obs || ""
+    });
+  }
+
+  const dose1 = toNum(p.dose1 ?? 0);
+  const dose2 = toNum(p.dose2 ?? 0);
+
+  const minMg1 = toNum(p.minMg1 ?? 0);
+  const minMg2 = toNum(p.minMg2 ?? 0);
+  const maxMg  = (p.maxMg === undefined) ? Infinity : toNum(p.maxMg);
+
+  const roundN = (p.round === undefined) ? 1 : Math.max(0, parseInt(p.round, 10));
+  const suffix = (p.suffix || "mL").trim();
+
+  let mg1 = w * dose1;
+  mg1 = clamp(mg1, minMg1, isFinite(maxMg) ? maxMg : mg1);
+
+  let mg2 = w * dose2;
+  mg2 = clamp(mg2, minMg2, isFinite(maxMg) ? maxMg : mg2);
+
+  let ml1 = mg1 / conc;
+  let ml2 = mg2 / conc;
+
+  // arredondamento configurável
+  const factor = Math.pow(10, roundN);
+  ml1 = Math.round(ml1 * factor) / factor;
+  ml2 = Math.round(ml2 * factor) / factor;
+
+  const r1 = (med.resp1Label || "Dose 1").trim();
+  const r2 = (med.resp2Label || "Dose 2").trim();
+
+  const presc = `${r1}: ADMINISTRAR ${fmtByRound(ml1, roundN)} ${suffix} | ${r2}: ADMINISTRAR ${fmtByRound(ml2, roundN)} ${suffix}`;
+
+  return buildRxLine({
+    drug: formatDrugHeader(med),
+    presc,
+    obs: med.obs || ""
+  });
+},
+
+// B) mL/kg → mL, 2 respostas
+// Params:
+//  dose1 (mL/kg), dose2 (mL/kg)
+//  round (default 0), suffix (default "mL")
+GEN_2RESP_MLKG: (med, ctx, runtime) => {
+  const w = ctx.weightKg;
+  const p = med.params || {};
+
+  const d1 = toNum(p.dose1 ?? 0);
+  const d2 = toNum(p.dose2 ?? 0);
+  const roundN = (p.round === undefined) ? 0 : Math.max(0, parseInt(p.round, 10));
+  const suffix = (p.suffix || "mL").trim();
+
+  let ml1 = w * d1;
+  let ml2 = w * d2;
+
+  const factor = Math.pow(10, roundN);
+  ml1 = Math.round(ml1 * factor) / factor;
+  ml2 = Math.round(ml2 * factor) / factor;
+
+  const r1 = (med.resp1Label || "Dose 1").trim();
+  const r2 = (med.resp2Label || "Dose 2").trim();
+
+  const presc = `${r1}: ${fmtByRound(ml1, roundN)} ${suffix} | ${r2}: ${fmtByRound(ml2, roundN)} ${suffix}`;
+
+  return buildRxLine({
+    drug: formatDrugHeader(med),
+    presc,
+    obs: med.obs || ""
+  });
+},
+
+// C) J/kg → J, 2 respostas, com teto maxJ
+// Params:
+//  dose1 (J/kg), dose2 (J/kg), maxJ (default 200)
+GEN_2RESP_JKG: (med, ctx, runtime) => {
+  const w = ctx.weightKg;
+  const p = med.params || {};
+
+  const d1 = toNum(p.dose1 ?? 0);
+  const d2 = toNum(p.dose2 ?? 0);
+  const maxJ = toNum(p.maxJ ?? 200);
+
+  let j1 = w * d1;
+  let j2 = w * d2;
+
+  if (isFinite(maxJ)){
+    j1 = clamp(j1, 0, maxJ);
+    j2 = clamp(j2, 0, maxJ);
+  }
+
+  const r1 = (med.resp1Label || "Dose 1").trim();
+  const r2 = (med.resp2Label || "Dose 2").trim();
+
+  const presc = `${r1}: ${fmt1Smart(j1)} J | ${r2}: ${fmt1Smart(j2)} J`;
+
+  return buildRxLine({
+    drug: formatDrugHeader(med),
+    presc,
+    obs: med.obs || ""
+  });
+},
+
+// D) 1 resposta: mL/kg e diluição proporcional
+// Útil para "1:1", "1:2", etc.
+// Params:
+//  mlPerKg (obrigatório)  -> volume do fármaco por kg (mL/kg) OU volume direto se setar directMl = true
+//  directMl (opcional bool) -> se true, mlPerKg = mL por kg continua, mas pode usar outra regra no futuro (mantive simples)
+//  dilRatio (default 1) -> volume diluente = mlDrug * dilRatio  (1:1 => 1, 1:2 => 2)
+//  diluentLabel (default "AD")
+//  round (default 1)
+//  suffix (default "mL EV lento")
+GEN_1RESP_MLKG_DILUTION: (med, ctx, runtime) => {
+  const w = ctx.weightKg;
+  const p = med.params || {};
+
+  const mlPerKg = toNum(p.mlPerKg);
+  if (!isFinite(mlPerKg) || mlPerKg <= 0){
+    return buildRxLine({
+      drug: formatDrugHeader(med),
+      presc: "ERRO: mlPerKg inválido nos parâmetros.",
+      obs: med.obs || ""
+    });
+  }
+
+  const dilRatio = toNum(p.dilRatio ?? 1); // 1:1 => 1
+  const diluentLabel = (p.diluentLabel || "AD").trim();
+  const roundN = (p.round === undefined) ? 1 : Math.max(0, parseInt(p.round, 10));
+  const suffix = (p.suffix || "mL EV lento").trim();
+
+  let mlDrug = w * mlPerKg;
+  let mlDil  = mlDrug * (isFinite(dilRatio) ? dilRatio : 1);
+
+  const factor = Math.pow(10, roundN);
+  mlDrug = Math.round(mlDrug * factor) / factor;
+  mlDil  = Math.round(mlDil  * factor) / factor;
+
+  const presc = `${fmtByRound(mlDrug, roundN)} mL + ${fmtByRound(mlDil, roundN)} mL de ${diluentLabel} ${suffix}`;
+
+  return buildRxLine({
+    drug: formatDrugHeader(med),
+    presc,
+    obs: med.obs || ""
+  });
+},
+
+// F) Infusão contínua por HORA (mcg/kg/h, mg/kg/h, UI/kg/h) → mL/h, com stepper
+// Fórmula: mL/h = (dosePorKgPorHora * pesoKg) / concPerMl
+// Params:
+//  unit: "mcg/kg/h" | "mg/kg/h" | "UI/kg/h"   (apenas texto na UI)
+//  start, step, min, max (dose)
+//  round (default 2) -> casas decimais do mL/h
+//  suffix (default "mL/h em BIC")
+//  show24h (default false) -> mostra mL/24h também
+//
+// Concentração (obrigatório de um jeito ou outro):
+//  A) concPerMl: número (ex: fentanyl 50 mcg/mL => 50; midazolam 5 mg/mL => 5; vasopressina 0.2 UI/mL => 0.2)
+//  OU
+//  B) totalDrug e finalVolMl -> concPerMl = totalDrug/finalVolMl (ex: 20 UI / 100 mL = 0.2)
+GEN_INFUSION_H_STEPPER: (med, ctx, runtime) => {
+  const w = ctx.weightKg;
+  const p = med.params || {};
+
+  const unit  = (p.unit || "mcg/kg/h").trim();
+  const start = toNum(p.start ?? 0);
+  const step  = toNum(p.step  ?? 0);
+  const min   = toNum(p.min   ?? start);
+  const max   = toNum(p.max   ?? start);
+
+  const roundN = (p.round === undefined) ? 2 : Math.max(0, parseInt(p.round, 10));
+  const suffix = (p.suffix || "mL/h em BIC").trim();
+  const show24h = !!p.show24h;
+
+  // Concentração
+  let conc = toNum(p.concPerMl);
+  if (!isFinite(conc) || conc <= 0){
+    const totalDrug = toNum(p.totalDrug);
+    const finalVol  = toNum(p.finalVolMl);
+    if (isFinite(totalDrug) && totalDrug > 0 && isFinite(finalVol) && finalVol > 0){
+      conc = totalDrug / finalVol;
+    }
+  }
+  if (!isFinite(conc) || conc <= 0){
+    return buildRxLine({
+      drug: formatDrugHeader(med),
+      presc: "ERRO: defina concPerMl OU (totalDrug e finalVolMl) nos parâmetros.",
+      obs: med.obs || ""
+    });
+  }
+
+  // dose atual (stepper)
+  let dose = (runtime && typeof runtime.stepDose === "number") ? runtime.stepDose : start;
+  dose = clamp(dose, min, max);
+
+  // mL/h
+  let mlh = (dose * w) / conc;
+  const factor = Math.pow(10, roundN);
+  mlh = Math.round(mlh * factor) / factor;
+
+  let presc = `${med.dilution || ""}: CORRER ${fmtByRound(mlh, roundN)} ${suffix}`;
+
+  // referência em parênteses (se habilitado)
+  const refTxt = buildRefText(med, `${fmt2Smart(dose).replace('.',',')} ${unit}`);
+  if (refTxt) presc += ` ${refTxt}`;
+  else presc += ` (${fmt2Smart(dose).replace('.',',')} ${unit})`;
+
+  if (show24h){
+    const ml24 = Math.round((mlh * 24) * factor) / factor;
+    presc += ` | 24h: ${fmtByRound(ml24, roundN)} mL/24h`;
+  }
+
+  return buildRxLine({
+    drug: formatDrugHeader(med),
+    presc,
+    obs: med.obs || "",
+    stepperUI: { key: med.id, dose, start, step, min, max, unit }
+  });
+},
+
+  
+// E) Stepper genérico (bolus mg/kg → mL OU infusion mcg/kg/min → mL/h)
+// Params:
+//  mode: "bolus" | "infusion"  (obrigatório)
+//  unit: texto da unidade ("mg/kg", "mcg/kg/min")
+//  start, step, min, max
+//  round (default 1)
+//  (bolus) concMgPerMl (obrigatório), flushMl (opcional), suffix (default "mL EV bolus")
+//  (infusion) concMcgPerMl (obrigatório), suffix (default "mL/h em BIC")
+GEN_STEPPER: (med, ctx, runtime) => {
+  const w = ctx.weightKg;
+  const p = med.params || {};
+
+  const mode = (p.mode || "").toLowerCase().trim(); // bolus | infusion
+  const unit = (p.unit || (mode === "bolus" ? "mg/kg" : "mcg/kg/min")).trim();
+
+  const start = toNum(p.start ?? 0);
+  const step  = toNum(p.step  ?? 0);
+  const min   = toNum(p.min   ?? start);
+  const max   = toNum(p.max   ?? start);
+
+  const roundN = (p.round === undefined) ? 1 : Math.max(0, parseInt(p.round, 10));
+
+  // dose atual (runtime)
+  let dose = (runtime && typeof runtime.stepDose === "number") ? runtime.stepDose : start;
+  dose = clamp(dose, min, max);
+
+  const drug = formatDrugHeader(med);
+
+  if (mode === "bolus"){
+    const concMgPerMl = toNum(p.concMgPerMl);
+    if (!isFinite(concMgPerMl) || concMgPerMl <= 0){
+      return buildRxLine({ drug, presc: "ERRO: concMgPerMl inválida.", obs: med.obs || "" });
+    }
+    const flushMl = toNum(p.flushMl ?? NaN);
+    const suffix = (p.suffix || "mL EV bolus").trim();
+
+    const mg = dose * w;
+    let ml = mg / concMgPerMl;
+
+    const factor = Math.pow(10, roundN);
+    ml = Math.round(ml * factor) / factor;
+
+    let presc = `APLICAR ${fmtByRound(ml, roundN)} ${suffix}`;
+    if (isFinite(flushMl)) presc += ` + ${fmt1Smart(flushMl)} mL de SF 0,9% EV após`;
+
+    const refTxt = buildRefText(med, `${fmt2Smart(dose).replace('.',',')} ${unit}`);
+    if (refTxt) presc += ` ${refTxt}`;
+    else presc += ` (${fmt2Smart(dose).replace('.',',')} ${unit})`;
+
+    return buildRxLine({
+      drug,
+      presc,
+      obs: med.obs || "",
+      stepperUI: { key: med.id, dose, start, step, min, max, unit }
+    });
+  }
+
+  if (mode === "infusion"){
+    const concMcgPerMl = toNum(p.concMcgPerMl);
+    if (!isFinite(concMcgPerMl) || concMcgPerMl <= 0){
+      return buildRxLine({ drug, presc: "ERRO: concMcgPerMl inválida.", obs: med.obs || "" });
+    }
+    const suffix = (p.suffix || "mL/h em BIC").trim();
+
+    const mlh = (dose * w * 60) / concMcgPerMl; // mcg/kg/min → mL/h
+    const factor = Math.pow(10, roundN);
+    const mlhR = Math.round(mlh * factor) / factor;
+
+    let presc = `${med.dilution || ""}: CORRER ${fmtByRound(mlhR, roundN)} ${suffix}`;
+    const refTxt = buildRefText(med, `${fmt2Smart(dose).replace('.',',')} ${unit}`);
+    if (refTxt) presc += ` ${refTxt}`;
+    else presc += ` (${fmt2Smart(dose).replace('.',',')} ${unit})`;
+
+    return buildRxLine({
+      drug,
+      presc,
+      obs: med.obs || "",
+      stepperUI: { key: med.id, dose, start, step, min, max, unit }
+    });
+  }
+
+  // fallback
+  return buildRxLine({ drug, presc: "ERRO: mode deve ser 'bolus' ou 'infusion' nos parâmetros.", obs: med.obs || "" });
+},
+KCL_PCAL_4H_STEPPER: (med, ctx, runtime) => {
+  const __ss = (window.stepperState = window.stepperState || {});
+  const pcal = toNum(ctx.pcal);
+
+  // chaves de estado (2 steppers)
+  const doseKey = `${med.id}__kclDose`;
+  const concKey = `${med.id}__kclConc`;
+
+  // defaults e limites
+  const doseStart = 0.3, doseStep = 0.1, doseMin = 0.3, doseMax = 0.5;   // mEq/kcal/h
+  const concStart = 60,  concStep = 10,  concMin = 40,  concMax = 120;   // mEq/L
+
+  // estado atual (ou default)
+  let dose = (typeof __ss[doseKey] === "number") ? __ss[doseKey] : doseStart;
+  let conc = (typeof __ss[concKey] === "number") ? __ss[concKey] : concStart;
+
+  dose = clamp(roundTo(dose, 1), doseMin, doseMax);
+  conc = clamp(roundTo(conc, 0), concMin, concMax);
+
+  __ss[doseKey] = dose;
+  __ss[concKey] = conc;
+
+  // cálculo em 4 horas
+  const hours = 4;
+  const totalMeq = dose * pcal * hours; // mEq
+
+  // volumes de KCl
+  // KCl 10%: 1 mL = 1,34 mEq
+  // KCl 19,1%: 1 mL = 2,56 mEq
+  const kcl10Ml  = totalMeq / 1.34;
+  const kcl191Ml = totalMeq / 2.56;
+
+  // volume de SF para atingir concentração (mEq/L)
+  // sf(L) = totalMeq / conc  => sf(mL) = *1000
+  const sfMl = (totalMeq / conc) * 1000;
+
+  // taxa em 4h
+  // OBS: para bater com seu exemplo, a taxa exibida será baseada no volume total do esquema com KCl 10%
+  // (mantém 65,3 mL/h no exemplo). Se quiser “taxa real por apresentação”, eu ajusto em 1 linha.
+  const rateMlH = (sfMl + kcl10Ml) / hours;
+
+  const via = (conc <= 60) ? "Acesso periférico (40–60 mEq/L)" : "Acesso CENTRAL (>60 mEq/L)";
+  const viaTag = (conc <= 60)
+    ? `<span class="tag" style="margin-left:8px">PERIFÉRICO</span>`
+    : `<span class="tag" style="margin-left:8px; border-color:#fecaca; background:#fef2f2; color:var(--danger)">CENTRAL</span>`;
+
+  const doseTxt = `${fmtByRound(dose,1)} mEq/kcal/h`;
+  const concTxt = `${fmtByRound(conc,0)} mEq/L`;
+
+  const drug = formatDrugHeader(med);
+
+  const line10 = `KCl 10%: Preparar ${fmt1Smart(roundTo(kcl10Ml,1))} mL + ${fmt1Smart(roundTo(sfMl,1))} mL de SF 0,9% EV em 4 horas, ${fmt1Smart(roundTo(rateMlH,1))} mL/h (${doseTxt})`;
+  const line191 = `KCl 19,1%: Preparar ${fmt2Smart(roundTo(kcl191Ml,2))} mL + ${fmt1Smart(roundTo(sfMl,1))} mL de SF 0,9% EV em 4 horas, ${fmt1Smart(roundTo(rateMlH,1))} mL/h (${doseTxt})`;
+
+  const presc = `${line10} | ${line191}`;
+
+  const extraHtml = `
+    <div class="inline-stepper" style="margin-top:10px">
+      <span class="small" style="font-weight:900">Dose</span>
+      <button class="btn" onclick="svStep2('${doseKey}', -1, ${doseStart}, ${doseStep}, ${doseMin}, ${doseMax}, 1)">-</button>
+      <span class="stepval">${fmtByRound(dose,1).replace('.',',')} mEq/kcal/h</span>
+      <button class="btn" onclick="svStep2('${doseKey}', +1, ${doseStart}, ${doseStep}, ${doseMin}, ${doseMax}, 1)">+</button>
+      <span class="small">passo 0,1 (min 0,3 / máx 0,5)</span>
+    </div>
+
+    <div class="inline-stepper" style="margin-top:8px">
+      <span class="small" style="font-weight:900">Rediluição</span>
+      <button class="btn" onclick="svStep2('${concKey}', -1, ${concStart}, ${concStep}, ${concMin}, ${concMax}, 0)">-</button>
+      <span class="stepval">${fmtByRound(conc,0)} mEq/L</span>
+      <button class="btn" onclick="svStep2('${concKey}', +1, ${concStart}, ${concStep}, ${concMin}, ${concMax}, 0)">+</button>
+      ${viaTag}
+      <span class="small">${escapeHtml(via)}</span>
+    </div>
+  `;
+
+  const obs = med.obs || "Infusão contínua em 4 horas. Rediluir com SF 0,9%.";
+
+  return buildRxLine({ drug, presc, obs, extraHtml });
+},
+
+  
+GEN_ELEC_HYPONATREMIA: (med, ctx, runtime) => {
+  const medId = med.id;
+  const st = getMedRuntime(medId);
+
+  const w = toNum(ctx.weightKg);
+  if (!isFinite(w) || w <= 0){
+    return buildRxLine({ drug: formatDrugHeader(med), presc:"ERRO: peso inválido.", obs: med.obs || "" });
+  }
+
+  // select: agudo/crônico
+  const mode = String(st.naMode || "agudo");
+  const desired = (mode === "cronico") ? 120 : 130;
+
+  // Na encontrado
+  const naFound = toNumOrNaN(st.naFound);
+  const okNa = isFinite(naFound);
+
+  const drug = formatDrugHeader(med);
+
+  if (!okNa){
+    return buildRxLine({
+      drug,
+      presc: "Informe o Na+ do paciente para calcular.",
+      obs: med.obs || "Fórmula: (Na desejado – Na encontrado) × 0,6 × peso (kg). Preparar solução hipertônica equivalente a NaCl 3%: AD/SG5% 85 mL + NaCl 20% 15 mL (1 mL = 0,5 mEq).",
+      controlsUI: [
+        {
+          type:"select", medId, field:"naMode", label:"Quadro",
+          value: mode,
+          options: [
+            {value:"agudo", label:"Agudo (Na desejado = 130)"},
+            {value:"cronico", label:"Crônico (Na desejado = 120)"}
+          ]
+        },
+        { type:"number", medId, field:"naFound", label:"Na+ encontrado (mEq/L)", value:"", min:90, max:160, step:1, placeholder:"Ex.: 115" }
+      ]
+    });
+  }
+
+  // déficit em mEq
+  const delta = Math.max(0, desired - naFound);
+  const meq = delta * 0.6 * w;
+
+  // NaCl 3%: 1 mL = 0,5 mEq → volume (mL) = mEq / 0,5 = mEq*2
+  const totalVol = meq * 2;
+
+  // preparação via “montagem” com NaCl 20% 15% do volume final:
+  const nacl20 = totalVol * 0.15;
+  const dil = totalVol * 0.85;
+
+  const half = totalVol / 2;
+  const rate24 = half / 24;
+
+  const presc =
+    `Na (mEq) = (${desired} – ${fmt1Smart(naFound)}) × 0,6 × ${fmt1Smart(w)} = ${fmt1Smart(meq)} mEq` +
+    ` | ` +
+    `Preparar: NaCl 20% ${fmt1Smart(nacl20)} mL + AD/SG5% ${fmt1Smart(dil)} mL (total ${fmt1Smart(totalVol)} mL; 0,5 mEq/mL)` +
+    ` | ` +
+    `Repor metade: ${fmt1Smart(half)} mL EV em 30 min` +
+    ` | ` +
+    `Depois: ${fmt1Smart(half)} mL EV em 24h (${fmt2Smart(rate24)} mL/h)`;
+
+  return buildRxLine({
+    drug,
+    presc,
+    obs: med.obs || "Atenção a limites de correção e monitorização seriada conforme protocolo/local.",
+    controlsUI: [
+      {
+        type:"select", medId, field:"naMode", label:"Quadro",
+        value: mode,
+        options: [
+          {value:"agudo", label:"Agudo (Na desejado = 130)"},
+          {value:"cronico", label:"Crônico (Na desejado = 120)"}
+        ]
+      },
+      { type:"number", medId, field:"naFound", label:"Na+ encontrado (mEq/L)", value:naFound, min:90, max:160, step:1 }
+    ]
+  });
+},
+GEN_ELEC_HYPERNATREMIA: (med, ctx, runtime) => {
+  const medId = med.id;
+  const st = getMedRuntime(medId);
+
+  const w = toNum(ctx.weightKg);
+  if (!isFinite(w) || w <= 0){
+    return buildRxLine({ drug: formatDrugHeader(med), presc:"ERRO: peso inválido.", obs: med.obs || "" });
+  }
+
+  const na = toNumOrNaN(st.naHyper);
+  const ok = isFinite(na);
+
+  const duration = String(st.hyperHours || "48"); // "48" ou "72"
+  const hours = (duration === "72") ? 72 : 48;
+
+  const drug = formatDrugHeader(med);
+
+  if (!ok){
+    return buildRxLine({
+      drug,
+      presc: "Informe o Na+ sérico para calcular o déficit de água livre.",
+      obs: med.obs || "Fórmula: Déficit água livre (L) = [(Na obtido ÷ 140) – 1] × peso (kg) × 0,6. Programar correção lenta (48–72h), conforme protocolo/local.",
+      controlsUI: [
+        { type:"number", medId, field:"naHyper", label:"Na+ obtido (mEq/L)", value:"", min:140, max:200, step:1, placeholder:"Ex.: 165" },
+        {
+          type:"select", medId, field:"hyperHours", label:"Duração planejada",
+          value: duration,
+          options: [
+            {value:"48", label:"48 horas"},
+            {value:"72", label:"72 horas"}
+          ]
+        }
+      ]
+    });
+  }
+
+  const deficitL = Math.max(0, ((na / 140) - 1) * w * 0.6);
+  const deficitMl = deficitL * 1000;
+  const rate = deficitMl / hours;
+
+  const presc =
+    `Déficit água livre = [(${fmt1Smart(na)} ÷ 140) – 1] × ${fmt1Smart(w)} × 0,6 = ${fmt2Smart(deficitL)} L (${fmt1Smart(deficitMl)} mL)` +
+    ` | ` +
+    `Se corrigir em ${hours}h: ~${fmt1Smart(rate)} mL/h (apenas do déficit, além de manutenção/perdas)`;
+
+  return buildRxLine({
+    drug,
+    presc,
+    obs: med.obs || "Correção lenta conforme protocolo/local (limites de variação do Na e monitorização seriada).",
+    controlsUI: [
+      { type:"number", medId, field:"naHyper", label:"Na+ obtido (mEq/L)", value:na, min:140, max:200, step:1 },
+      {
+        type:"select", medId, field:"hyperHours", label:"Duração planejada",
+        value: duration,
+        options: [
+          {value:"48", label:"48 horas"},
+          {value:"72", label:"72 horas"}
+        ]
+      }
+    ]
+  });
+},
+GEN_ELEC_HYPOCALCEMIA: (med, ctx, runtime) => {
+  const medId = med.id;
+  const st = getMedRuntime(medId);
+
+  const w = toNum(ctx.weightKg);
+  if (!isFinite(w) || w <= 0){
+    return buildRxLine({ drug: formatDrugHeader(med), presc:"ERRO: peso inválido.", obs: med.obs || "" });
+  }
+
+  const mode = String(st.caMode || "assint"); // "assint" | "sint"
+  const maxDay = 60; // mL/dia (conforme seu texto)
+
+  const drug = formatDrugHeader(med);
+
+  if (mode === "assint"){
+    const dayMin = Math.min(maxDay, 4 * w);
+    const dayMax = Math.min(maxDay, 8 * w);
+
+    const presc =
+      `Assintomática: Gluconato de cálcio 10% ${fmt1Smart(dayMin)}–${fmt1Smart(dayMax)} mL/dia (máx ${maxDay} mL/dia) por 3–4 dias`;
+
+    return buildRxLine({
+      drug,
+      presc,
+      obs: med.obs || "",
+      controlsUI: [
+        {
+          type:"select", medId, field:"caMode", label:"Quadro",
+          value: mode,
+          options: [
+            {value:"assint", label:"Assintomática"},
+            {value:"sint", label:"Sintomática"}
+          ]
+        }
+      ]
+    });
+  }
+
+  // sintomática
+  const bolusMl = Math.min(60, 1 * w); // 1 mL/kg/dose (max 60)
+  const rateMaxMlMin = 0.5 * w;        // 0,5 mL/kg/min
+  const minTime = (rateMaxMlMin > 0) ? (bolusMl / rateMaxMlMin) : 0;
+
+  const dayMin = Math.min(maxDay, 2 * w);
+  const dayMax = Math.min(maxDay, 4 * w);
+
+  const presc =
+    `Sintomática (rápida): Gluconato de cálcio 10% ${fmt1Smart(bolusMl)} mL EV (máx 60 mL) a ${fmt1Smart(rateMaxMlMin)} mL/min (≈ ${fmt1Smart(minTime)} min)` +
+    ` | ` +
+    `Após: correção lenta 24h: ${fmt1Smart(dayMin)}–${fmt1Smart(dayMax)} mL/dia (2–4 mL/kg/dia)`;
+
+  return buildRxLine({
+    drug,
+    presc,
+    obs: med.obs || "Monitorização e ajuste conforme clínica/ECG e protocolo/local.",
+    controlsUI: [
+      {
+        type:"select", medId, field:"caMode", label:"Quadro",
+        value: mode,
+        options: [
+          {value:"assint", label:"Assintomática"},
+          {value:"sint", label:"Sintomática"}
+        ]
+      }
+    ]
+  });
+},
+
+  GEN_ELEC_HYPOMAGNESEMIA: (med, ctx, runtime) => {
+  const medId = med.id;
+  const st = getMedRuntime(medId);
+
+  const w = toNum(ctx.weightKg);
+  if (!isFinite(w) || w <= 0){
+    return buildRxLine({ drug: formatDrugHeader(med), presc:"ERRO: peso inválido.", obs: med.obs || "" });
+  }
+
+  // Conversões (conforme você definiu)
+  // 10%: 1 mL = 0,81 mEq
+  // 50%: 1 mL = 4,05 mEq
+  const MEQ_PER_ML_10 = 0.81;
+  const MEQ_PER_ML_50 = 4.05;
+
+  const scenario = String(st.mgScenario || "reposicao"); // "reposicao" | "arritmia"
+  const drug = formatDrugHeader(med);
+
+  // =========================
+  // CENÁRIO 1: REPOSIÇÃO q6h
+  // Sintomáticos ou má absorção: 0,25 mEq/kg a cada 6h (IV)
+  // =========================
+  if (scenario === "reposicao"){
+  const doseMeq = 0.25 * w;
+
+  const ml10 = doseMeq / MEQ_PER_ML_10;
+  const ml50 = doseMeq / MEQ_PER_ML_50;
+
+  const presc =
+    `Reposição (q6h): Dose ${fmt1NoZero(doseMeq)} mEq` +
+    ` | MgSO₄ 10%: ${fmt1NoZero(ml10)} mL EV a cada 6h (1 mL = 0,81 mEq)` +
+    ` | Alternativa MgSO₄ 50%: ${fmt2Smart(ml50)} mL EV a cada 6h (1 mL = 4,05 mEq)`;
+
+  return buildRxLine({
+    drug,
+    presc,
+    obs: med.obs || "Repor conforme clínica e monitorização. Considerar função renal e controles seriados.",
+    controlsUI: [
+      {
+        type:"select", medId, field:"mgScenario", label:"Cenário",
+        value: scenario,
+        options: [
+          {value:"reposicao", label:"Reposição (0,25 mEq/kg EV q6h)"},
+          {value:"arritmia",  label:"Arritmias (bônus + 2h + manutenção)"},
+        ]
+      }
+    ]
+  });
+}
+
+
+  // =========================
+  // CENÁRIO 2: ARRITMIAS
+  // 8 a 16 mEq em 5 min
+  // seguida de 8 a 16 mEq em 2h
+  // manter 4 a 8 mEq/dia
+  // =========================
+  let bolusMeq = toNum(st.mgBolusMeq);
+  if (!isFinite(bolusMeq)) bolusMeq = 8;
+  bolusMeq = clamp(bolusMeq, 8, 16);
+
+  let inf2hMeq = toNum(st.mgInf2hMeq);
+  if (!isFinite(inf2hMeq)) inf2hMeq = 8;
+  inf2hMeq = clamp(inf2hMeq, 8, 16);
+
+  let maintMeqDay = toNum(st.mgMaintMeqDay);
+  if (!isFinite(maintMeqDay)) maintMeqDay = 4;
+  maintMeqDay = clamp(maintMeqDay, 4, 8);
+
+  // Volumes para 10% e 50%
+  const bolusMl10 = bolusMeq / MEQ_PER_ML_10;
+  const bolusMl50 = bolusMeq / MEQ_PER_ML_50;
+
+  const inf2hMl10 = inf2hMeq / MEQ_PER_ML_10;
+  const inf2hMl50 = inf2hMeq / MEQ_PER_ML_50;
+
+  const maintMl10 = maintMeqDay / MEQ_PER_ML_10;
+  const maintMl50 = maintMeqDay / MEQ_PER_ML_50;
+
+  const presc =
+    `Arritmias: Bólus ${fmt1Smart(bolusMeq)} mEq em 5 min (10%: ${fmt2Smart(bolusMl10)} mL; 50%: ${fmt2Smart(bolusMl50)} mL)` +
+    ` | Seguida: ${fmt1Smart(inf2hMeq)} mEq em 2h (10%: ${fmt2Smart(inf2hMl10)} mL; 50%: ${fmt2Smart(inf2hMl50)} mL)` +
+    ` | Manutenção: ${fmt1Smart(maintMeqDay)} mEq/dia (10%: ${fmt2Smart(maintMl10)} mL/dia; 50%: ${fmt2Smart(maintMl50)} mL/dia)` +
+    ` | Conversões: 10% (1 mL=0,81 mEq) • 50% (1 mL=4,05 mEq)`;
+
+
+  return buildRxLine({
+    drug,
+    presc,
+    obs: med.obs || "Ajustar conforme ECG, Mg sérico e função renal. Monitorização contínua em arritmias.",
+    controlsUI: [
+      {
+        type:"select", medId, field:"mgScenario", label:"Cenário",
+        value: scenario,
+        options: [
+          {value:"reposicao", label:"Reposição (0,25 mEq/kg EV q6h)"},
+          {value:"arritmia",  label:"Arritmias (bônus + 2h + manutenção)"},
+        ]
+      },
+      { type:"stepper", medId, field:"mgBolusMeq",   label:"Bólus (mEq) em 5 min", value: bolusMeq, unit:"mEq", step:2, min:8, max:16 },
+      { type:"stepper", medId, field:"mgInf2hMeq",   label:"Dose (mEq) em 2 horas", value: inf2hMeq, unit:"mEq", step:2, min:8, max:16 },
+      { type:"stepper", medId, field:"mgMaintMeqDay",label:"Manutenção (mEq/dia)", value: maintMeqDay, unit:"mEq/dia", step:1, min:4, max:8 },
+    ]
+  });
+},
+
+  KPHOS_BY_P_SERUM: (med, ctx, runtime) => {
+    const medId = med.id;
+    const st = getMedRuntime(medId);
+
+    const w = toNum(ctx.weightKg);
+    if (!isFinite(w) || w <= 0){
+      return buildRxLine({
+        drug: formatDrugHeader(med),
+        presc: "ERRO: peso inválido.",
+        obs: med.obs || ""
+      });
+    }
+
+    // fósforo sérico digitado pelo usuário
+    const pSer = toNumOrNaN(st.pSerum);
+    const okP = isFinite(pSer);
+
+    const drug = formatDrugHeader(med);
+
+    // parâmetros configuráveis (defaults alinhados ao seu exemplo)
+    const p = med.params || {};
+    const pMmolPerMl   = toNum(p.pMmolPerMl ?? 1);     // seu EXEMPLO usa 1 mmol P / mL
+    const kMeqPerMl    = toNum(p.kMeqPerMl  ?? 2);     // 2 mEq K / mL
+    const redilPer5    = toNum(p.redilPer5Mmol ?? 100); // 100 mL para cada 5 mmol P
+    const vehicle      = (p.vehicle || "SF 0,9%").trim();
+
+    if (!okP){
+      return buildRxLine({
+        drug,
+        presc: "Informe o fósforo sérico (mg/dL) para calcular as doses.",
+        obs: med.obs || "Classificação: leve 2,3–2,7 • moderada 1,5–2,2 • grave <1,5. Infundir em 4–6h.",
+        controlsUI: [
+          {
+            type: "float",
+            medId,
+            field: "pSerum",
+            label: "Fósforo sérico (mg/dL)",
+            value: "",
+            placeholder: "Ex.: 1,2",
+            hint: "Aceita vírgula ou ponto. Ex.: 1,2"
+          }
+        ]
+      });
+    }
+
+    // define faixa
+    let label = "";
+    let doseMin = NaN, doseMax = NaN;
+
+    if (pSer < 1.5){
+      label = "Hipofosfatemia grave";
+      doseMin = 0.32; doseMax = 0.64;
+    } else if (pSer >= 1.5 && pSer <= 2.2){
+      label = "Hipofosfatemia moderada";
+      doseMin = 0.16; doseMax = 0.32;
+    } else if (pSer >= 2.3 && pSer <= 2.7){
+      label = "Hipofosfatemia leve";
+      doseMin = 0.08; doseMax = 0.16;
+    } else {
+      return buildRxLine({
+        drug,
+        presc: `Fósforo ${fmt2Smart(pSer).replace('.',',')} mg/dL: fora das faixas definidas (sem cálculo automático).`,
+        obs: med.obs || "Faixas: leve 2,3–2,7 • moderada 1,5–2,2 • grave <1,5.",
+        controlsUI: [
+          {
+            type: "float",
+            medId,
+            field: "pSerum",
+            label: "Fósforo sérico (mg/dL)",
+            value: st.pSerum ?? "",
+            placeholder: "Ex.: 1,2"
+          }
+        ]
+      });
+    }
+
+    // mmol de P
+    const mmolMin = w * doseMin;
+    const mmolMax = w * doseMax;
+
+    // volume de fosfato (mL)
+    // mL = mmol / (mmol por mL)
+    const mlMin = mmolMin / pMmolPerMl;
+    const mlMax = mmolMax / pMmolPerMl;
+
+    // K em mEq
+    const kMin = mlMin * kMeqPerMl;
+    const kMax = mlMax * kMeqPerMl;
+
+    // rediluição: (redilPer5 mL) para cada 5 mmol
+    const dilMin = (mmolMin / 5) * redilPer5;
+    const dilMax = (mmolMax / 5) * redilPer5;
+
+    // arredondações “cara de prescrição”
+    const mlMinR  = round1(mlMin);
+    const mlMaxR  = round1(mlMax);
+    const dilMinR = round1(dilMin);
+    const dilMaxR = round1(dilMax);
+
+    // mmols e mEq com 1 casa (fica como seu exemplo)
+    const mmolMinT = fmt1Smart(round1(mmolMin));
+    const mmolMaxT = fmt1Smart(round1(mmolMax));
+    const kMinT    = fmt1Smart(round1(kMin));
+    const kMaxT    = fmt1Smart(round1(kMax));
+
+    const pTxt = fmt2Smart(pSer).replace('.',',');
+
+    const presc =
+      `${label} (P ${pTxt} mg/dL)` +
+      ` | Dose mínima: ${fmt1Smart(mlMinR)} mL + ${fmt1Smart(dilMinR)} mL de ${vehicle} EV em 4 a 6 horas (${mmolMinT} mmol/P e ${kMinT} mEq/K)` +
+      ` | Dose máxima: ${fmt1Smart(mlMaxR)} mL + ${fmt1Smart(dilMaxR)} mL de ${vehicle} EV em 4 a 6 horas (${mmolMaxT} mmol/P e ${kMaxT} mEq/K)`;
+
+    return buildRxLine({
+      drug,
+      presc,
+      obs: med.obs || `Rediluição: ${redilPer5} mL de ${vehicle} para cada 5 mmol de P. Apresentação: 1 mL = ${pMmolPerMl} mmol de P e ${kMeqPerMl} mEq de K.`,
+      controlsUI: [
+        {
+          type: "float",
+          medId,
+          field: "pSerum",
+          label: "Fósforo sérico (mg/dL)",
+          value: st.pSerum ?? "",
+          placeholder: "Ex.: 1,2"
+        }
+      ]
+    });
+  },
+
+};
+
+function buildRefText(med, fallback){
+  if (!med.refEnabled) return "";
+  const t = (med.refText || "").trim();
+  if (t) return `(${t})`;
+  return fallback ? `(${fallback})` : "";
+}
+
+function formatDrugHeader(med){
+  const title = `${escapeHtml(med.name || "—")}`;
+  const pres = (med.presentation || "").trim();
+  const presTxt = pres ? `<div class="small">${escapeHtml(pres)}</div>` : "";
+  return `<div><div style="font-weight:1000">${title}</div>${presTxt}</div>`;
+}
+
+
+function escapeHtml(s){
+  return String(s || "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function escJsStr(s){
+  return String(s ?? "")
+    .replace(/\\/g, "\\\\")
+    .replace(/'/g, "\\'")
+    .replace(/\r/g, "\\r")
+    .replace(/\n/g, "\\n")
+    .replace(/\u2028/g, "\\u2028")
+    .replace(/\u2029/g, "\\u2029");
+}
+
+function decodeEntities(str){
+  // decodifica entidades HTML, inclusive quando vierem "duplamente escapadas" (ex.: &amp;#8211;)
+  let cur = String(str ?? "");
+  for (let i = 0; i < 4; i++){
+    const ta = document.createElement("textarea");
+    ta.innerHTML = cur;
+    const next = ta.value;
+    if (next === cur) break;
+    cur = next;
+  }
+  return cur;
+}
+function prescToHtml(txt){
+  return escapeHtml(decodeEntities(txt || ""))
+    .replaceAll(" | ", "<br/>")
+    .replaceAll("\n", "<br/>")
+    // marcador para aviso de clamp
+    .replaceAll("[[LIMIT_MAX]]", '<span class="limit-note">Limitado à dose máxima</span>');
+}
+
+
+
+
+  /* =========================================================
+   4B) MATERIAIS — RESULTADO FILTRADO (por peso/idade)
+   ========================================================= */
+
+// idade em meses a partir do texto livre (ex.: "2a 3m", "10m", "15d")
+function parseAgeToMonths(ageTxt){
+  const t = String(ageTxt || "").toLowerCase().trim();
+  if (!t) return null;
+
+  const s = t.replaceAll(",", ".")
+    .replaceAll("anos","a").replaceAll("ano","a")
+    .replaceAll("meses","m").replaceAll("mes","m")
+    .replaceAll("dias","d").replaceAll("dia","d");
+
+  let years = 0, months = 0, days = 0;
+  const re = /(\d+)\s*(a|m|d)\b/g;
+  let m, found = false;
+  while ((m = re.exec(s)) !== null){
+    found = true;
+    const val = parseInt(m[1], 10);
+    const unit = m[2];
+    if (unit === "a") years += val;
+    if (unit === "m") months += val;
+    if (unit === "d") days += val;
+  }
+  if (!found){
+    const n = parseInt(s, 10);
+    if (isFinite(n)) return n * 12;
+    return null;
+  }
+  return (years * 12) + months + Math.floor(days / 30);
+}
+
+function pickByWeight(w, rows){
+  if (!isFinite(w)) return null;
+  for (const r of rows){
+    if (w >= r.min && w <= r.max) return r;
+  }
+  const below = rows.filter(r => r.max < w).sort((a,b)=>b.max-a.max)[0];
+  if (below) return below;
+  return rows.slice().sort((a,b)=>a.min-b.min)[0] || null;
+}
+
+function pickByAgeMonths(ageM, rows){
+  if (!isFinite(ageM)) return null;
+  for (const r of rows){
+    if (ageM >= r.minM && ageM <= r.maxM) return r;
+  }
+  const below = rows.filter(r => r.maxM < ageM).sort((a,b)=>b.maxM-a.maxM)[0];
+  if (below) return below;
+  return rows.slice().sort((a,b)=>a.minM-b.minM)[0] || null;
+}
+
+const MATERIAL_ITEMS = [
+  { title:"Bolsa – válvula de ressuscitação", mode:"weight", rows:[
+    {min:3,max:5,val:"Lactente", label:"3–5 kg"},
+    {min:6,max:9,val:"Lactente", label:"6–9 kg"},
+    {min:10,max:22,val:"Criança", label:"10–22 kg"},
+    {min:24,max:30,val:"Criança/Adulto", label:"24–30 kg"},
+    {min:32,max:999,val:"Adulto", label:"≥32 kg"}
+  ]},
+
+  { title:"Máscara de O₂", mode:"weight", rows:[
+    {min:3,max:9,val:"Neonatal", label:"3–9 kg"},
+    {min:10,max:22,val:"Pediátrica", label:"10–22 kg"},
+    {min:24,max:30,val:"Adulto", label:"24–30 kg"},
+    {min:32,max:999,val:"Adulto", label:"≥32 kg"}
+  ]},
+
+  { title:"Cânula oro-faríngea", mode:"weight", rows:[
+    {min:3,max:5,val:"0", label:"3–5 kg"},
+    {min:6,max:11,val:"1", label:"6–11 kg"},
+    {min:12,max:14,val:"1–2", label:"12–14 kg"},
+    {min:15,max:22,val:"2", label:"15–22 kg"},
+    {min:24,max:30,val:"2–3", label:"24–30 kg"},
+    {min:32,max:999,val:"3 ou +", label:"≥32 kg"}
+  ]},
+
+  { title:"Lâmina de laringoscópio", mode:"weight", rows:[
+    {min:3,max:5,val:"Reta 0–1", label:"3–5 kg"},
+    {min:6,max:11,val:"Reta 1", label:"6–11 kg"},
+    {min:12,max:14,val:"Reta 2", label:"12–14 kg"},
+    {min:15,max:22,val:"Reta 2 ou Curva", label:"15–22 kg"},
+    {min:24,max:30,val:"Reta 2–3 ou Curva", label:"24–30 kg"},
+    {min:32,max:999,val:"Reta 3 ou Curva", label:"≥32 kg"}
+  ]},
+
+  { title:"Cânula traqueal (CT)", mode:"weight", rows:[
+    {min:3,max:5,val:"Prematuro 2,5 / Termo 3,0–3,5 sem cuff", label:"3–5 kg"},
+    {min:6,max:9,val:"3,5 sem cuff", label:"6–9 kg"},
+    {min:10,max:11,val:"4,0 sem cuff", label:"10–11 kg"},
+    {min:12,max:14,val:"4,5 sem cuff", label:"12–14 kg"},
+    {min:15,max:18,val:"5,0 sem cuff", label:"15–18 kg"},
+    {min:19,max:22,val:"5,5 sem cuff", label:"19–22 kg"},
+    {min:24,max:30,val:"6,0 com cuff", label:"24–30 kg"},
+    {min:32,max:999,val:"6,5 com cuff", label:"≥32 kg"}
+  ]},
+
+  { title:"Comprimento da CT (no lábio)", mode:"weight", rows:[
+    {min:3,max:9,val:"10–10,5", label:"3–9 kg"},
+    {min:10,max:11,val:"11–12", label:"10–11 kg"},
+    {min:12,max:14,val:"12,5–13,5", label:"12–14 kg"},
+    {min:15,max:18,val:"14–15", label:"15–18 kg"},
+    {min:19,max:22,val:"15,5–16,5", label:"19–22 kg"},
+    {min:24,max:30,val:"17–18", label:"24–30 kg"},
+    {min:32,max:999,val:"18,5–19,5", label:"≥32 kg"}
+  ]},
+
+  { title:"Cateter EV (Jelco)", mode:"weight", rows:[
+    {min:3,max:9,val:"22–24G", label:"3–9 kg"},
+    {min:10,max:11,val:"20–24G", label:"10–11 kg"},
+    {min:12,max:18,val:"18–22G", label:"12–18 kg"},
+    {min:19,max:30,val:"18–20G", label:"19–30 kg"},
+    {min:32,max:999,val:"16–20G", label:"≥32 kg"}
+  ]},
+
+  { title:"Cateter venoso central", mode:"weight", rows:[
+    {min:0,max:4.999,val:"3 Fr", label:"<5 kg"},
+    {min:5,max:10,val:"4 Fr", label:"5–10 kg"},
+    {min:10.001,max:30,val:"5 Fr", label:"10–30 kg"},
+    {min:30.001,max:999,val:"7 Fr", label:">30 kg"}
+  ]},
+
+  { title:"Jelco PAI", mode:"age", rows:[
+    {minM:0,maxM:11,val:"24G", label:"< 1 ano"},
+    {minM:12,maxM:59,val:"22G", label:"1–4 anos"},
+    {minM:60,maxM:999,val:"20G", label:"≥ 5 anos"}
+  ]},
+
+  { title:"Jelco para toracocentese", mode:"age", rows:[
+    {minM:0,maxM:59,val:"16G", label:"< 5 anos"},
+    {minM:60,maxM:96,val:"14–16G", label:"5–8 anos"},
+    {minM:97,maxM:999,val:"14G", label:"> 8 anos"}
+  ]},
+
+  {
+    title:"Pás de desfibrilação / cardioversão",
+    mode:"custom"
+  },
+
+  {
+    title:"Sonda vesical",
+    mode:"age",
+    rows:[
+      {minM:0,  maxM:11,  val:"8 Fr",     label:"< 1 ano"},
+      {minM:12, maxM:35,  val:"8–10 Fr",  label:"1–3 anos"},
+      {minM:36, maxM:59,  val:"10 Fr",    label:"3–5 anos"},
+      {minM:60, maxM:999, val:"10–12 Fr", label:"> 5 anos"}
+    ]
+  }
+]; // <<<<<<<<<<<<<< FECHOU AQUI (ISTO QUE FALTAVA)
+
+function renderMaterialsSelected(ctx, ageTxt){
+  const el = document.getElementById("matGrid");
+  if (!el) return;
+
+  const w = toNum(ctx?.weightKg);
+  const ageM = parseAgeToMonths(ageTxt);
+
+  if (!isFinite(w) || w <= 0 || !String(ageTxt||"").trim()){
+    el.innerHTML = `<div class="small">Preencha <b>idade</b> e <b>peso</b> e clique em <b>Calcular</b>.</div>`;
+    return;
+  }
+
+  const cards = [];
+
+  for (const item of MATERIAL_ITEMS){
+    let chosenVal = "—";
+    let chosenLabel = "";
+
+    if (item.mode === "weight"){
+      const r = pickByWeight(w, item.rows || []);
+      if (r){ chosenVal = r.val; chosenLabel = r.label; }
+    } else if (item.mode === "age"){
+      const r = pickByAgeMonths(ageM, item.rows || []);
+      if (r){ chosenVal = r.val; chosenLabel = r.label; }
+      else { chosenVal = "Idade inválida"; chosenLabel = "—"; }
+    } else if (item.mode === "custom"){
+      const isInfant = (isFinite(ageM) && ageM < 12) || (isFinite(w) && w < 10);
+      chosenVal = isInfant ? "Pás de lactente" : "Pás de adulto";
+      chosenLabel = isInfant ? "<1 ano OU <10 kg" : "≥1 ano E ≥10 kg";
+    }
+
+cards.push(`
+  <div class="mat-card">
+    <div class="mat-h">${escapeHtml(decodeEntities(item.title))}</div>
+    <div class="mat-body">
+      <div class="mat-main">${escapeHtml(decodeEntities(chosenVal))}</div>
+      <div class="mat-sub">Base: ${escapeHtml(decodeEntities(chosenLabel || "—"))}</div>
+    </div>
+  </div>
+`);
+
+  }
+
+  el.innerHTML = cards.join("");
+}
+
+
+
+
+
+
+/* =========================================================
+   5) UI: Tabs
+   ========================================================= */
+const tabCalc = document.getElementById("tabCalc");
+const tabCrud = document.getElementById("tabCrud");
+const calcView = document.getElementById("calcView");
+const crudView = document.getElementById("crudView");
+const modePill = document.getElementById("modePill");
+const tabProto = document.getElementById("tabProto");
+const protoView = document.getElementById("protoView");
+
+tabProto.onclick = () => setTab("proto");
+
+tabCalc.onclick = () => setTab("calc");
+tabCrud.onclick = () => setTab("crud");
+
+function setTab(which){
+  const isCalc = which === "calc";
+  const isCrud = which === "crud";
+  const isProto = which === "proto";
+
+  tabCalc.classList.toggle("active", isCalc);
+  tabCrud.classList.toggle("active", isCrud);
+  tabProto.classList.toggle("active", isProto);
+
+  calcView.style.display = isCalc ? "" : "none";
+  crudView.style.display = isCrud ? "" : "none";
+  protoView.style.display = isProto ? "" : "none";
+
+  modePill.textContent = `Modo: ${isCalc ? "Calculadora" : (isCrud ? "CRUD" : "Protocolos")}`;
+  if (isProto) renderProtoSessionsUI();
+}
+
+
+
+/* =========================================================
+   6) ESTADO (medicações carregadas + doses runtime)
+   ========================================================= */
+let medsCache = [];          // lista de medicações ativas/inativas
+let selectedMedId = null;    // edição
+  let medRuntimeState = {}; // { medId: {campo1:..., campo2:...} }
+
+  // =========================
+// CRUD Medicações — refs DOM
+// =========================
+const crudStatus = document.getElementById("crudStatus");
+const medList    = document.getElementById("medList");
+const medSearch  = document.getElementById("medSearch");
+
+const btnSaveMed   = document.getElementById("btnSaveMed");
+const btnResetMed  = document.getElementById("btnResetMed");
+const btnDeleteMed = document.getElementById("btnDeleteMed");
+
+// campos do formulário (IDs do seu HTML)
+const fName       = document.getElementById("mName");
+const fPres       = document.getElementById("mPres");
+const fGroup      = document.getElementById("mGroup");
+const fDil        = document.getElementById("mDil");
+const fRedil      = document.getElementById("mRedil");
+const fCalcKey    = document.getElementById("mCalcKey");
+const fActive     = document.getElementById("mActive");
+const fRefEnabled = document.getElementById("mRefEnabled");
+const fRefText    = document.getElementById("mRefText");
+const fObs        = document.getElementById("mObs");
+
+const fR1 = document.getElementById("mR1Label");
+const fR2 = document.getElementById("mR2Label");
+const fR3 = document.getElementById("mR3Label");
+const fR4 = document.getElementById("mR4Label");
+const fR5 = document.getElementById("mR5Label");
+const fR6 = document.getElementById("mR6Label");
+
+const fParams = document.getElementById("mParams");
+
+// eventos
+if (btnSaveMed)   btnSaveMed.onclick   = saveMed;
+if (btnDeleteMed) btnDeleteMed.onclick = deleteMed;
+if (btnResetMed)  btnResetMed.onclick  = resetMedForm;
+
+if (medSearch) medSearch.addEventListener("input", renderMedList);
+
+// =========================
+// Runtime por medicação (sv_*)
+// - Necessário para impressão e campos dinâmicos
+// - Mantém compatibilidade com suas calcKeys
+// =========================
+window.getMedRuntime = window.getMedRuntime || function getMedRuntime(medId){
+  const id = String(medId || '').trim();
+  if (!id) return {};
+  // medRuntimeState deve existir; se não existir, cria
+  if (typeof medRuntimeState === 'undefined'){
+    window.medRuntimeState = {};
+  }
+  const st = (window.medRuntimeState || medRuntimeState);
+  if (!st[id]) st[id] = {};
+  return st[id];
+};
+
+// helpers de leitura/escrita para inputs (se você usar no HTML dos calcKeys)
+window.svGetField = function(medId, field){
+  const st = getMedRuntime(medId);
+  return st[field] ?? "";
+};
+
+let __svRunCalcTimer = null;
+
+window.svRunCalc = function(){
+  if (__svRunCalcTimer) clearTimeout(__svRunCalcTimer);
+  __svRunCalcTimer = setTimeout(() => {
+    try { runCalc(); } catch(e){ console.warn(e); }
+  }, 30);
+};
+
+
+// ===============================
+// SV helpers: IDs estáveis p/ controles (evita perder foco e rolagem ao recalcular)
+// ===============================
+function svHash(str){
+  str = String(str ?? "");
+  let h = 2166136261;
+  for (let i=0;i<str.length;i++){
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0).toString(36);
+}
+function svAssignCtrlIds(){
+  const nodes = document.querySelectorAll(".svCtrl");
+  const counters = new Map(); // key => count
+  nodes.forEach(el => {
+    const med = el.getAttribute("data-med") || "";
+    const field = el.getAttribute("data-field") || "";
+    const key = med + "|" + field;
+    const n = (counters.get(key) || 0) + 1;
+    counters.set(key, n);
+    el.id = `sv_${svHash(med)}_${svHash(field)}_${n}`;
+  });
+}
+window.svSetField = function(medId, field, value, srcEl, immediate){
+  const st = getMedRuntime(medId);
+  st[field] = (value ?? "").toString();
+  // st já é referência em window.medRuntimeState; garantir persistência
+  window.medRuntimeState = window.medRuntimeState || {};
+  window.medRuntimeState[medId] = st;
+
+  // garante IDs estáveis para conseguir restaurar foco mesmo com controles vindos do Firestore
+  try { svAssignCtrlIds(); } catch(e){}
+
+  // preservar foco/cursor/scroll
+  const prevActive = srcEl || document.activeElement;
+  const prevCtrlId = (prevActive && prevActive.id) ? prevActive.id : null;
+  const prevSelStart = (prevActive && typeof prevActive.selectionStart === "number") ? prevActive.selectionStart : null;
+  const prevSelEnd   = (prevActive && typeof prevActive.selectionEnd   === "number") ? prevActive.selectionEnd   : null;
+  const prevScrollX = window.scrollX, prevScrollY = window.scrollY;
+
+  // debounce: evita re-render a cada dígito (não quebra digitação 115/136 etc)
+  clearTimeout(window.__svDebounce);
+  const delay = immediate ? 0 : 900;
+
+  window.__svDebounce = setTimeout(() => {
+    try { runCalc(); } catch(e){ console.error(e); }
+
+    // após render, re-atribui ids e restaura foco/cursor/scroll
+    requestAnimationFrame(() => {
+      try { svAssignCtrlIds(); } catch(e){}
+      if (prevCtrlId){
+        const el = document.getElementById(prevCtrlId);
+        if (el){
+          try { el.focus({preventScroll:true}); } catch(e){ try{ el.focus(); }catch(_e){} }
+          if (prevSelStart !== null && prevSelEnd !== null){
+            try { el.setSelectionRange(prevSelStart, prevSelEnd); } catch(e){}
+          }
+        }
+      }
+      if (immediate) window.scrollTo(prevScrollX, prevScrollY);
+    });
+  }, delay);
+};
+
+
+
+  // ----------------------------
+  //  Steppers (botões + / -)
+  //  - svStep: usa config capturada no renderRxTable (window.__svStepCfg)
+  //  - svStep2: stepper genérico baseado em key (usa stepperState)
+  //  - svStepField: stepper para campos numéricos no runtime (usa getMedRuntime)
+  // ----------------------------
+  window.__svStepCfg = window.__svStepCfg || {};
+
+  window.svStep2 = window.svStep2 || function(key, dir, start, step, min, max, decimals){
+    try{
+      const k = String(key||"").trim();
+      if (!k) return;
+      const st = (window.stepperState = window.stepperState || {});
+      const dirN = Number(dir)||0;
+      const startN = Number(start);
+      const stepN = Number(step);
+      const curRaw = (st[k]!==undefined && st[k]!==null && st[k]!=="" ) ? Number(st[k]) : (Number.isFinite(startN) ? startN : 0);
+      let v = (Number.isFinite(curRaw) ? curRaw : 0) + dirN * (Number.isFinite(stepN) ? stepN : 0);
+
+      const minN = (min===0 || min) ? Number(min) : null;
+      const maxN = (max===0 || max) ? Number(max) : null;
+      if (Number.isFinite(minN)) v = Math.max(v, minN);
+      if (Number.isFinite(maxN)) v = Math.min(v, maxN);
+
+      const decN = (decimals===0 || decimals) ? parseInt(decimals, 10) : null;
+      if (Number.isFinite(decN) && decN>=0) v = Number(v.toFixed(decN));
+
+      st[k] = v;
+      if (typeof runCalc === "function") runCalc();
+    }catch(e){}
+  };
+
+  window.svStep = window.svStep || function(key, dir){
+    try{
+      const k = String(key||"").trim();
+      if (!k) return;
+      const cfg = (window.__svStepCfg||{})[k];
+      if (cfg){
+        return window.svStep2(k, dir, cfg.start, cfg.step, cfg.min, cfg.max, cfg.dec);
+      }
+      // fallback seguro (caso não exista cfg ainda)
+      return window.svStep2(k, dir, 0, 1, null, null, 0);
+    }catch(e){}
+  };
+
+  window.svStepField = window.svStepField || function(medId, field, dir, step, min, max, decimals){
+    try{
+      const id = String(medId||"").trim();
+      const f = String(field||"").trim();
+      if (!id || !f) return;
+
+      const st = window.getMedRuntime(id);
+      const dirN = Number(dir)||0;
+      const stepN = Number(step);
+      const curRaw = Number(st[f]);
+      let v = (Number.isFinite(curRaw) ? curRaw : 0) + dirN * (Number.isFinite(stepN) ? stepN : 1);
+
+      const minN = (min===0 || min) ? Number(min) : null;
+      const maxN = (max===0 || max) ? Number(max) : null;
+      if (Number.isFinite(minN)) v = Math.max(v, minN);
+      if (Number.isFinite(maxN)) v = Math.min(v, maxN);
+
+      const decN = (decimals===0 || decimals) ? parseInt(decimals, 10) : null;
+      if (Number.isFinite(decN) && decN>=0) v = Number(v.toFixed(decN));
+
+      st[f] = v;
+      if (typeof runCalc === "function") runCalc();
+    }catch(e){}
+  };
+
+
+  let _svInputDebounce = {}; // timers por campo (medId+field)
+  let protoCache = [];
+let selectedProtoId = null;
+let activeProto = null; // protocolo carregado (modo público)
+
+
+function safeHtml(html){
+  return String(html || "")
+    .replaceAll("<script", "&lt;script")
+    .replaceAll("<\/script>", "&lt;\/script&gt;");
+}
+
+function protoBodyToHtml(raw){
+  const s = String(raw || "").trim();
+  if (!s) return "";
+
+  // Se já tiver cara de HTML (tem tags), só sanitiza o básico
+    const looksLikeHtml = /<\s*\/?\s*[a-z][a-z0-9-]*(\s[^>]*)?>/i.test(s);
+  if (looksLikeHtml) return safeHtml(s);
+
+  // Caso contrário, trata como texto puro:
+  // normaliza quebras e transforma bullets "•" colados na mesma linha em linhas reais
+const normalized = s
+  .replace(/\r\n/g, "\n")
+  .replace(/\s+•\s+/g, "\n• ");  // se vier " ... • item", vira nova linha
+
+const lines = normalized.split("\n");
+
+
+  let out = [];
+  let pBuf = [];
+  let listType = null;     // "ul" | "ol"
+  let listItems = [];
+
+  const flushP = () => {
+    if (pBuf.length){
+      out.push(`<p><strong>${pBuf.join("<br/>")}</strong></p>`);
+      pBuf = [];
+    }
+  };
+
+  const flushList = () => {
+    if (listItems.length && listType){
+      out.push(`<${listType}><li>${listItems.join("</li><li>")}</li></${listType}>`);
+    }
+    listType = null;
+    listItems = [];
+  };
+
+  for (const line of lines){
+    const t = line.trim();
+
+    // linha em branco = quebra de bloco
+    if (!t){
+      flushP();
+      flushList();
+      continue;
+    }
+
+    // 1. item (lista numerada)
+    const mOl = t.match(/^(\d+)\.\s+(.*)$/);
+    if (mOl){
+      flushP();
+      if (listType !== "ol"){ flushList(); listType = "ol"; }
+      listItems.push(escapeHtml(mOl[2]));
+      continue;
+    }
+
+    // • item OU - item (lista bullet)
+    const mUl = t.match(/^[-•]\s+(.*)$/);
+    if (mUl){
+      flushP();
+      if (listType !== "ul"){ flushList(); listType = "ul"; }
+      listItems.push(escapeHtml(mUl[1]));
+      continue;
+    }
+
+    // linha “normal” (vira parágrafo com <br/>)
+    flushList();
+    pBuf.push(escapeHtml(t));
+  }
+
+  flushP();
+  flushList();
+
+  return out.join("");
+}
+
+function showProtocolCard(p){
+  const card = document.getElementById("protoCard");
+  if (!card) return;
+
+  if (!p){
+    card.style.display = "none";
+    return;
+  }
+
+  card.style.display = "";
+
+  document.getElementById("protoTitle").textContent = p.title || "Protocolo";
+  document.getElementById("protoSubtitle").textContent = p.subtitle || "";
+  document.getElementById("protoSummary").innerHTML = protoBodyToHtml(p.summary || "");
+
+  const flowWrap = document.getElementById("protoFlowWrap");
+  const flowImg = document.getElementById("protoFlowImg");
+  if (p.flowchartUrl){
+    flowWrap.style.display = "";
+    flowImg.src = p.flowchartUrl;
+  } else {
+    flowWrap.style.display = "none";
+    flowImg.removeAttribute("src");
+  }
+
+  document.getElementById("protoBody").innerHTML = protoBodyToHtml(p.bodyHtml || "");
+}
+
+  function applyMaterialsVisibilityByProto(p){
+  const card = document.getElementById("materialsCard");
+  if (!card) return;
+
+  // padrão: mostra (para não quebrar protocolos antigos)
+  const allow = (p && typeof p.showMaterials === "boolean") ? p.showMaterials : true;
+
+  card.style.display = allow ? "" : "none";
+}
+
+  function applyMaterialsVisibilityByProto(){
+  const card = document.getElementById("materialsCard");
+  if (!card) return;
+
+  // Se não tem protocolo ativo, mantém mostrando (ou você pode escolher esconder)
+  if (!activeProto){
+    card.style.display = "";
+    return;
+  }
+
+  // Default: true (se não existir campo)
+  const show = (activeProto.showMaterials !== false);
+  card.style.display = show ? "" : "none";
+}
+
+
+/* =========================================================
+   7) CALCULADORA
+   ========================================================= */
+const pName = document.getElementById("pName");
+const pDob = document.getElementById("pDob");
+const pAge = document.getElementById("pAge");
+const pWeight = document.getElementById("pWeight");
+const btnCalc = document.getElementById("btnCalc");
+const btnClear = document.getElementById("btnClear");
+const calcStatus = document.getElementById("calcStatus");
+  
+  const btnPrint = document.getElementById("btnPrint");
+btnPrint.onclick = () => printPrescription();
+
+const mWeight = document.getElementById("mWeight");
+const mPcal = document.getElementById("mPcal");
+const mPcalSub = document.getElementById("mPcalSub");
+const mSC = document.getElementById("mSC");
+const rxBody = document.getElementById("rxBody");
+
+btnCalc.onclick = () => runCalc();
+btnClear.onclick = () => {
+  pName.value = "";
+  pDob.value = "";
+  pAge.value = "";
+  pWeight.value = "";
+  mWeight.textContent = "—";
+  mPcal.textContent = "—";
+  mSC.textContent = "—";
+  mPcalSub.textContent = "Holliday–Segar: volume hídrico diário (mL) ÷ 100";
+  rxBody.innerHTML = `<tr><td colspan="3" class="small">Preencha peso e clique em <b>Calcular</b>.</td></tr>`;
+  calcStatus.textContent = "";
+  medRuntimeState = {};
+  document.getElementById("matGrid").innerHTML =
+  `<div class="small">Preencha <b>idade</b> e <b>peso</b> e clique em <b>Calcular</b>.</div>`;
+  applyMaterialsVisibilityByProto(activeProto);
+};
+  
+  function buildProtoMedSections(proto, allMeds){
+  // base: só ativas
+  const base = sortMedsByGroupName((allMeds || []).filter(m => isTrue(m.active)));
+
+  // se não tem protocolo ativo: 1 seção padrão com tudo
+  if (!proto){
+    return [{ title: "Medicações", meds: base }];
+  }
+
+  const sessions = Array.isArray(proto.medSessions) ? proto.medSessions : null;
+  const hasSessions = sessions && sessions.some(s => {
+    if (!s) return false;
+    return (String(s.title||"").trim()) || (Array.isArray(s.groups)&&s.groups.length) || (Array.isArray(s.medIds)&&s.medIds.length);
+  });
+
+  // NOVO padrão (sessões)
+  if (hasSessions){
+    const out = [];
+
+    for (let i=0; i<6; i++){
+      const s = sessions[i] || {};
+      const titleRaw = String(s.title || "").trim();
+      const groups = Array.isArray(s.groups) ? s.groups : [];
+      const ids = Array.isArray(s.medIds) ? s.medIds : [];
+
+      const hasSel = (groups.length || ids.length);
+
+      // Sessão 1: se vazio -> todas
+      if (i === 0){
+        const title = titleRaw || "Medicações";
+        const meds = hasSel ? pickMedsByGroupsAndIds(base, groups, ids) : base;
+        out.push({ title, meds });
+        continue;
+      }
+
+      // Sessões 2–6: se sem nome OU sem seleção -> não aparece
+      if (!titleRaw || !hasSel) continue;
+
+      const meds = pickMedsByGroupsAndIds(base, groups, ids);
+      if (meds.length) out.push({ title: titleRaw, meds });
+    }
+
+    return out.length ? out : [{ title: "Medicações", meds: base }];
+  }
+
+  // Legado (JSON)
+  const legacy = proto.medsFilter || null;
+  const filtered = legacy ? applyMedsFilter(base, legacy) : base;
+  return [{ title: "Medicações", meds: filtered }];
+}
+
+function pickMedsByGroupsAndIds(base, groups, ids){
+  const gSet = new Set((groups || []).map(normTxt));
+  const idSet = new Set((ids || []).map(String));
+
+  const out = [];
+  for (const m of base){
+    const inGroup = gSet.size ? gSet.has(normTxt(m.group)) : false;
+    const inId = idSet.size ? idSet.has(String(m.id)) : false;
+    if (inGroup || inId) out.push(m);
+  }
+  return sortMedsByGroupName(out);
+}
+
+
+function runCalc(){
+  const ageTxt = (pAge.value || "").trim();
+  const w = toNum(pWeight.value);
+
+  if (!ageTxt){
+    calcStatus.textContent = "Preencha a idade (obrigatório).";
+    return;
+  }
+  if (!isFinite(w) || w <= 0){
+    calcStatus.textContent = "Preencha o peso em kg (obrigatório).";
+    return;
+  }
+  calcStatus.textContent = "";
+
+  const dailyMl = hollidaySegarDailyMl(w);
+  const pcal = calcPcal(w);
+  const sc = calcSC(w);
+
+  mWeight.textContent = `${fmt1Smart(w)} kg`;
+  mPcal.textContent = fmt1Smart(pcal);
+  mSC.textContent = `${fmt2Smart(sc).replace('.',',')} m\u00B2`; // m²
+mPcalSub.textContent = `Volume diário: ${fmt1Smart(dailyMl)} mL/dia \u2192 Pcal = ${fmt1Smart(pcal)}`; // →
+
+
+  const ctx = {weightKg: w, pcal, sc};
+renderRxTable(ctx);
+
+// aplica visibilidade conforme protocolo ativo (ou default true)
+applyMaterialsVisibilityByProto(activeProto);
+
+// só renderiza se estiver habilitado
+const allowMat = (activeProto && typeof activeProto.showMaterials === "boolean") ? activeProto.showMaterials : true;
+if (allowMat){
+  if (!activeProto || activeProto.showMaterials !== false){
+  renderMaterialsSelected(ctx, ageTxt);
+} else {
+  // se estiver oculto, não gasta render e garante que fica vazio
+  const el = document.getElementById("matGrid");
+  if (el) el.innerHTML = "";
+}
+}
+
+  
+}
+  
+ function printPrescription(){
+  const ageTxt = (pAge.value || "").trim();
+  const w = toNum(pWeight.value);
+
+  if (!ageTxt || !isFinite(w) || w <= 0){
+    alert("Preencha idade e peso e clique em Calcular antes de imprimir.");
+    return;
+  }
+
+  // monta ctx “oficial” (igual calculadora)
+  const ctx = { weightKg: w, pcal: calcPcal(w), sc: calcSC(w) };
+
+  // Dados do paciente
+  const name = (pName.value || "").trim();
+  const dob  = fmtDateBR((pDob.value || "").trim());
+
+  // Materiais (já filtrado na tela) — pode clonar o HTML
+  const mat = document.getElementById("matGrid");
+  const matHTML = mat ? mat.innerHTML : "";
+   const shouldPrintMaterials = (!activeProto || activeProto.showMaterials !== false);
+
+  // Tabela de prescrição para impressão (agrupada por grupo)
+  const rxHTML = buildPrintRxTableHTML(ctx);
+
+  // HTML de impressão
+  const html = `
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Prescrição – Sala Vermelha</title>
+  <style>
+    @page{ margin: 12mm; }
+
+    body{ font-family: Arial, sans-serif; margin: 0; color:#111; }
+    .page{ padding: 0; }
+
+    h1{ font-size:16px; margin:0 0 6px; }
+    .sub{ font-size:11px; color:#444; margin-bottom:10px; }
+
+    .box{ border:1px solid #ddd; border-radius:10px; padding:10px; margin-bottom:10px; }
+    .avoid{ break-inside: avoid; page-break-inside: avoid; }
+
+    /* Evita “cabeçalho sozinho” */
+    .headwrap{ break-inside: avoid; page-break-inside: avoid; }
+
+    .grid{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    .k{ font-size:11px; color:#555; font-weight:700; }
+    .v{ font-size:13px; font-weight:700; margin-top:3px; }
+    .muted{ color:#666; font-size:11px; margin-top:4px; }
+
+    table{ width:100%; border-collapse:collapse; margin-top:6px; }
+    th,td{ border-bottom:1px solid #ddd; padding:7px; vertical-align:top; font-size:11px; }
+    th{ background:#f3f6ff; font-size:10px; text-transform:uppercase; letter-spacing:.4px; }
+
+    /* Linha de grupo (o que você queria) */
+    tr.grp td{
+  background:#eef2ff;
+  font-weight:700;
+  color:#0b2a6f;
+  border-top:1px solid #cbd5e1;
+
+  text-align:center;     /* NOVO */
+  letter-spacing:.3px;   /* opcional */
+}
+    tr.sec td{ background:#f6f1e7; font-weight:1000; color:#3b2f1f; text-align:center; }
+
+
+    .drugname{ font-weight:700; }
+    .drugpres{ color:#444; font-size:10.5px; margin-top:2px; }
+
+    .mat-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:8px; }
+    .mat-card{ border:1px solid #ddd; border-radius:10px; overflow:hidden; }
+    .mat-h{ background:#f3f6ff; padding:7px 9px; font-weight:700; font-size:11px; }
+    .mat-body{ padding:7px 9px; }
+    .mat-main{ font-weight:700; font-size:11px; }
+    .mat-sub{ margin-top:3px; font-size:10px; color:#666; }
+
+    @media print{
+      .box{ page-break-inside: avoid; }
+      table{ page-break-inside:auto; }
+      tr{ page-break-inside:avoid; page-break-after:auto; }
+      /* não deixar o cabeçalho “sobrar” */
+.headwrap{ page-break-after: avoid; break-after: avoid; }
+
+/* a prescrição PODE quebrar em páginas */
+.rxbox{ break-inside: auto; page-break-inside: auto; }
+
+/* tabela pode quebrar; linhas não */
+table{ page-break-inside: auto; }
+tr{ page-break-inside: avoid; }
+
+    }
+    /* =========================
+   PROTOCOLOS — SESSÕES DE MEDICAÇÕES (CRUD)
+   ========================= */
+.sessWrap{ display:grid; gap:10px; }
+
+.sessCard{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:12px;
+}
+
+.sessHead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+}
+
+.sessIdx{
+  font-weight:1000;
+  color:#0b2a6f;
+  background:#eff6ff;
+  border:1px solid var(--line);
+  padding:4px 10px;
+  border-radius:999px;
+  font-size:12px;
+  white-space:nowrap;
+}
+
+.sessTitle{ flex:1; }
+
+.pickRow{
+  display:grid;
+  grid-template-columns: 1fr;
+  gap:10px;
+}
+@media(min-width:860px){
+  .pickRow{ grid-template-columns: 1fr 1fr; }
+}
+
+.pickBox{
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:10px;
+  background:#fff;
+}
+
+.pickTop{
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+
+.pickTop b{
+  font-size:12px;
+  color:var(--muted);
+  font-weight:1000;
+}
+
+.pickSearch{ flex:1; }
+.pickSearch input{
+  width:100%;
+  padding:8px 10px;
+  border-radius:12px;
+  border:1px solid var(--line);
+  font-size:13px;
+}
+
+.pickList{
+  max-height:180px;
+  overflow:auto;
+  border-top:1px solid var(--line);
+  padding-top:8px;
+  margin-top:8px;
+}
+
+.pickItem{
+  display:flex;
+  gap:8px;
+  align-items:flex-start;
+  padding:6px 4px;
+  border-radius:10px;
+  cursor:pointer;
+}
+.pickItem:hover{ background:#f8fafc; }
+
+.pickItem input{
+  width:16px;
+  height:16px;
+  margin-top:2px;
+}
+
+.pickItem .t{
+  font-weight:900;
+  font-size:13px;
+}
+.pickItem .s{
+  font-size:11px;
+  color:var(--muted);
+  margin-top:2px;
+}
+
+.chips{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:8px;
+}
+
+.chip{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:5px 10px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background:#f8fafc;
+  font-size:12px;
+  font-weight:900;
+}
+
+.chip .x{
+  cursor:pointer;
+  font-weight:1000;
+  color:var(--danger);
+}
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <div class="headwrap">
+      <h1>PediUrgente — Sala Vermelha (Prescrição Automática)</h1>
+      <div class="sub">
+        ${name ? `Paciente: <b>${escapeHtml(name)}</b> • ` : ""}
+        ${dob ? `Nascimento: <b>${escapeHtml(dob)}</b> • ` : ""}
+        Idade: <b>${escapeHtml(ageTxt)}</b> • Peso: <b>${escapeHtml(fmt1Smart(w))} kg</b>
+      </div>
+
+      <div class="box">
+        <div class="grid">
+          <div>
+            <div class="k">PESO</div>
+            <div class="v">${escapeHtml(mWeight.textContent || "")}</div>
+          </div>
+          <div>
+            <div class="k">PESO CALÓRICO (Pcal)</div>
+            <div class="v">${escapeHtml(mPcal.textContent || "")}</div>
+            <div class="muted">${escapeHtml(mPcalSub.textContent || "")}</div>
+          </div>
+          <div>
+            <div class="k">SUPERFÍCIE CORPORAL (SC)</div>
+            <div class="v">${escapeHtml(mSC.textContent || "")}</div>
+            <div class="muted">SC (m²) = (Peso×4 + 7) / (Peso + 90)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="box rxbox">
+  <div class="k" style="margin-bottom:6px">PRESCRIÇÃO</div>
+  ${rxHTML}
+      <div class="muted" style="margin-top:8px">
+        Observação: gerador para uso clínico rápido. Checar concentração, via, compatibilidade, limites e contexto.
+      </div>
+    </div>
+
+    ${shouldPrintMaterials ? `
+  <div class="box avoid">
+    <div class="k" style="margin-bottom:6px">MATERIAIS / EQUIPAMENTOS (selecionado por peso/idade)</div>
+    <div class="mat-grid">
+      ${matHTML}
+    </div>
+    <div class="muted" style="margin-top:8px">
+      Regra prática: quando o peso cair entre faixas, use a faixa imediatamente inferior.
+    </div>
+  </div>
+` : ``}
+
+    </div>
+
+  </div>
+
+</body>
+</html>`;
+
+  const win = window.open("", "_blank");
+  if (!win){
+    alert("O navegador bloqueou o pop-up. Permita pop-ups para imprimir.");
+    return;
+  }
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+   win.addEventListener("load", () => {
+  setTimeout(() => {
+    win.focus();
+    win.print();
+  }, 200);
+});
+
+}
+
+function renderRxTable(ctx){
+  const sections = buildProtoMedSections(activeProto, medsCache);
+
+  let rows = [];
+
+  sections.forEach(sec => {
+    const title = (sec && sec.title) ? sec.title : "Medicações";
+
+    // Cabeçalho da SESSÃO
+    rows.push(`<tr class="sec"><td colspan="3">${escapeHtml(title)}</td></tr>`);
+
+    // Mantém cabeçalhos por GRUPO dentro de cada sessão (como já era antes)
+    let lastGroup = null;
+
+    (sec.meds || []).forEach(med => {
+
+        const group = (med.group || "").trim();
+      
+        // linha de grupo quando muda
+        if (group && group !== lastGroup){
+          rows.push(`<tr class="grp"><td colspan="3">${escapeHtml(group)}</td></tr>`);
+          lastGroup = group;
+        }
+        if (!group) lastGroup = null;
+      
+        const calcKey = med.calcKey || "TEXT_ONLY";
+        const fn = calcRegistry[calcKey] || calcRegistry.TEXT_ONLY;
+      
+        const runtime = {};
+        const isStepper =
+          (calcKey === "GEN_STEPPER") ||
+          ((calcKey || "").endsWith("_STEPPER"));
+      
+        if (isStepper){
+          const __ss = (window.stepperState = window.stepperState || {});
+          const current = (typeof __ss[med.id] === "number") ? __ss[med.id] : undefined;
+          runtime.stepDose = (typeof current === "number") ? current : undefined;
+        }
+      
+        const out = fn(med, ctx, runtime);
+      
+        let prescHtml = prescToHtml(out.presc || "");
+        if (out.extraHtml){
+        prescHtml += out.extraHtml; // <- injeta os 2 steppers do KCl
+      }
+      
+      
+        if (out.stepperUI){
+          const s = out.stepperUI;
+          const unit = s.unit || "mcg/kg/min";
+          const minV = (s.min !== undefined && s.min !== null) ? s.min : (s.start ?? s.dose);
+          const maxV = (s.max !== undefined && s.max !== null) ? s.max : (s.start ?? s.dose);
+          const doseDec = Math.max(decimalsOf(s.step), decimalsOf(s.dose), decimalsOf(minV));
+      
+          
+          // captura config do stepper (para svStep funcionar)
+          try{
+            window.__svStepCfg = window.__svStepCfg || {};
+            window.__svStepCfg[String(s.key)] = {
+              start: (s.start===0 || s.start) ? s.start : ((s.dose===0 || s.dose) ? s.dose : 0),
+              step: (s.step===0 || s.step) ? s.step : 1,
+              min: minV,
+              max: maxV,
+              dec: doseDec
+            };
+          }catch(e){}
+prescHtml += `
+            <div class="inline-stepper">
+              <button class="btn" onclick="svStep('${s.key}', -1)">-</button>
+              <span class="stepval">${fmtByRound(s.dose, doseDec)} ${escapeHtml(unit)}</span>
+              <button class="btn" onclick="svStep('${s.key}', +1)">+</button>
+              <span class="small">passo ${fmtByRound(s.step, doseDec)} (min ${fmtByRound(minV, doseDec)} / máx ${fmtByRound(maxV, doseDec)})</span>
+            </div>
+          `;
+        }
+      if (Array.isArray(out.controlsUI) && out.controlsUI.length){
+        const blocks = out.controlsUI.map(c => {
+        // garante persistência do valor digitado/selecionado entre re-renderizações
+        const __mid = c.medId || (out && out.medId) || "";
+        const __st = __mid ? getMedRuntime(__mid) : {};
+        const __valRaw = (c && c.field && typeof __st[c.field] !== "undefined") ? __st[c.field] : (c.value ?? "");
+        const __val = (__valRaw ?? "").toString();
+          if (c.type === "stepper"){
+            const dec = Math.max(decimalsOf(c.step), decimalsOf(c.value), decimalsOf(c.min));
+            return `
+              <div class="inline-stepper">
+                <span class="small" style="font-weight:900">${escapeHtml(c.label || "")}</span>
+                <button class="btn" onclick="svStepField('${c.medId}','${c.field}',-1,${c.step},${c.min},${c.max})">-</button>
+                <span class="stepval">${fmtByRound(c.value, dec)} ${escapeHtml(c.unit || "")}</span>
+                <button class="btn" onclick="svStepField('${c.medId}','${c.field}',+1,${c.step},${c.min},${c.max})">+</button>
+                <span class="small">passo ${fmtByRound(c.step, dec)} (min ${fmtByRound(c.min, dec)} / máx ${fmtByRound(c.max, dec)})</span>
+              </div>
+            `;
+          }
+      
+          if (c.type === "number"){
+        const v = __val;
+      
+        return `
+          <div style="margin-top:10px">
+            <label style="margin:0 0 6px; font-size:12px; color:var(--muted); font-weight:900">
+              ${escapeHtml(c.label || "")}
+            </label>
+      
+            <input
+        type="text"
+        data-med="${escapeHtml(String(c.medId))}"
+        data-field="${escapeHtml(String(c.field))}"
+        inputmode="numeric"
+        pattern="[0-9]*"
+        autocomplete="off"
+        value="${escapeHtml(String(v))}"
+        placeholder="${escapeHtml(String(c.placeholder ?? ""))}"
+        oninput="
+        this.value = this.value.replace(/[^0-9]/g,'');
+        svSetField('${c.medId}','${c.field}', this.value, this);
+      "
+      />
+      
+      
+            ${c.hint ? `<div class="hint">${escapeHtml(String(c.hint))}</div>` : ``}
+          </div>
+        `;
+      }
+      
+          if (c.type === "float"){
+            const v = __val;
+      
+            return `
+              <div style="margin-top:10px">
+                <label style="margin:0 0 6px; font-size:12px; color:var(--muted); font-weight:900">
+                  ${escapeHtml(c.label || "")}
+                </label>
+      
+                <input class="svCtrl" data-med="${c.medId}" data-field="${c.field}"
+                  type="text"
+                  data-med="${escapeHtml(String(c.medId))}"
+                  data-field="${escapeHtml(String(c.field))}"
+                  inputmode="decimal"
+                  autocomplete="off"
+                  value="${escapeHtml(String(v))}"
+                  placeholder="${escapeHtml(String(c.placeholder ?? ""))}"
+                  oninput="
+                    // permite dígitos + vírgula/ponto; mantém só 1 separador decimal
+                    this.value = this.value.replace(/[^0-9.,]/g,'');
+                    const parts = this.value.split(/[,\.]/);
+                    if (parts.length > 2){
+                      this.value = parts[0] + ',' + parts.slice(1).join('');
+                    }
+                    svSetField('${c.medId}','${c.field}', this.value, this);
+                  "
+                />
+      
+                ${c.hint ? `<div class="hint">${escapeHtml(String(c.hint))}</div>` : ``}
+              </div>
+            `;
+          }
+      
+      
+          if (c.type === "select"){
+            const cur = __val;
+            const opts = (c.options||[]).map(o => {
+              const sel = (String(o.value) === cur) ? "selected" : "";
+              return `<option value="${escapeHtml(String(o.value))}" ${sel}>${escapeHtml(String(o.label))}</option>`;
+            }).join("");
+            return `
+              <div style="margin-top:10px">
+                <label style="margin:0 0 6px; font-size:12px; color:var(--muted); font-weight:900">${escapeHtml(c.label || "")}</label>
+                <select class="svCtrl" data-med="${c.medId}" data-field="${c.field}" onchange="svSetField('${c.medId}','${c.field}', this.value, this)">${opts}</select>
+                ${c.hint ? `<div class="hint">${escapeHtml(String(c.hint))}</div>` : ``}
+              </div>
+            `;
+          }
+      
+          return "";
+        });
+      
+        prescHtml += blocks.join("");
+      }
+      
+        rows.push(`
+          <tr>
+            <td>${out.drug}</td>
+            <td>${prescHtml}</td>
+            <td>${escapeHtml(out.obs || "")}</td>
+          </tr>
+        `);
+      
+    });
+  });
+
+  rxBody.innerHTML = rows.length
+    ? rows.join("")
+    : `<tr><td colspan="3" class="small">Sem medicações para exibir.</td></tr>`;
+}
+
+  
+  function buildPrintRxTableHTML(ctx){
+  const sections = buildProtoMedSections(activeProto, medsCache);
+
+  let rows = [];
+
+  function printDrugCellHtml(rx){
+    let raw = rx?.drug ?? "";
+    // se veio escapado (ex.: &lt;div&gt;...), desescapa para renderizar corretamente
+    if (typeof raw === "string" && raw.includes("&lt;") && raw.includes("&gt;")){
+      raw = raw.replace(/&amp;/g,"&")
+               .replace(/&lt;/g,"<")
+               .replace(/&gt;/g,">")
+               .replace(/&quot;/g,'"')
+               .replace(/&#39;/g,"'");
+    }
+    const isHtml = (typeof raw === "string") && /<\/?[a-z][\s\S]*>/i.test(raw);
+    if (isHtml) return raw; // já vem com HTML (nome + apresentação)
+
+    const nm = escapeHtml(raw || "—");
+    const pres = rx?.presentation ? `<div class="small">${escapeHtml(rx.presentation)}</div>` : "";
+    return `<div style="font-weight:1000">${nm}</div>` + pres;
+  }
+
+
+  (sections || []).forEach(sec => {
+    if (!sec || !Array.isArray(sec.meds) || !sec.meds.length) return;
+
+    // Cabeçalho da sessão
+    rows.push(`<tr class="sec"><td colspan="3">${escapeHtml(sec.title || "Medicações")}</td></tr>`);
+
+    // Dentro da sessão, mantém agrupamento por "group" para leitura
+    let currentGroup = null;
+
+    sec.meds.forEach(m => {
+      const g = (m.group || "").trim();
+      if (g && g !== currentGroup){
+        // subcabeçalho do grupo (mais discreto)
+        rows.push(`<tr class="grp"><td colspan="3" style="font-size:12px;opacity:.9">${escapeHtml(g)}</td></tr>`);
+        currentGroup = g;
+      }
+
+      const fn = calcRegistry[m.calcKey];
+      const rx = (typeof fn === "function") ? fn(m, ctx, getMedRuntime(m.id)) : null;
+      if (!rx) return;
+
+      rows.push(`
+        <tr>
+          <td>${printDrugCellHtml(rx)}</td>
+          <td>${prescToHtml(rx.presc || "—")}${rx.extraHtml || ""}</td>
+          <td>${escapeHtml(rx.obs || "")}</td>
+        </tr>
+      `);
+    });
+  });
+
+  if (!rows.length){
+    rows.push(`<tr><td colspan="3" class="small">Sem medicações para exibir.</td></tr>`);
+  }
+
+  return `
+    <table class="rxtable">
+      <thead>
+        <tr>
+          <th>DROGA E APRESENTAÇÃO</th>
+          <th>PRESCRIÇÃO</th>
+          <th>OBSERVAÇÃO</th>
+        </tr>
+      </thead>
+      <tbody>${rows.join("")}</tbody>
+    </table>
+  `;
+}
+
+function parseParamsJson(txt){
+  const t = (txt || "").trim();
+  if (!t) return {};
+  try{
+    const obj = JSON.parse(t);
+    if (obj && typeof obj === "object") return obj;
+    return {};
+  }catch(e){
+    throw new Error("JSON inválido em Parâmetros.");
+  }
+}
+
+async function saveMed(){
+  const name = (fName.value||"").trim();
+  const presentation = (fPres.value||"").trim();
+  const group = (fGroup.value||"").trim();
+  const dilution = (fDil.value||"").trim();
+  const redilution = (fRedil.value||"").trim();
+  const calcKey = fCalcKey.value;
+  const active = (fActive.value === "true");
+  const refEnabled = (fRefEnabled.value === "true");
+  const refText = (fRefText.value||"").trim();
+  const obs = (fObs.value||"").trim();
+  const resp1Label = (fR1.value||"").trim();
+  const resp2Label = (fR2.value||"").trim();
+  const resp3Label = (fR3.value||"").trim();
+  const resp4Label = (fR4.value||"").trim();
+  const resp5Label = (fR5.value||"").trim();
+  const resp6Label = (fR6.value||"").trim();
+
+  if (!name){
+    crudStatus.textContent = "Preencha o nome da medicação.";
+    return;
+  }
+
+  let params = {};
+  try{
+    params = parseParamsJson(fParams.value);
+  }catch(err){
+    crudStatus.textContent = err.message;
+    return;
+  }
+
+  // Stepper: se calcKey for NOREPI_STEPPER, cria/atualiza objeto stepper a partir de params (se existir)
+let stepper = null;
+
+const isStepperKey =
+  (calcKey === "GEN_STEPPER") ||
+  ((calcKey || "").endsWith("_STEPPER"));
+
+if (isStepperKey){
+  const start = toNum(params.start ?? 0.05);
+  const step  = toNum(params.step  ?? 0.05);
+  const min   = toNum(params.min   ?? start);
+  const max   = toNum(params.max   ?? start); // <- default seguro (não força 2)
+  stepper = { start, step, min, max };
+}
+
+
+
+
+  const doc = {
+    name,
+    presentation,
+    group,
+    dilution,
+    redilution,
+    calcKey,
+    active,
+    refEnabled,
+    refText,
+    obs,
+    resp1Label,
+    resp2Label,
+      resp3Label, // <-- ADD
+  resp4Label, // <-- ADD
+  resp5Label, // <-- ADD
+  resp6Label, // <-- ADD
+    params: params || {},
+    stepper: stepper || null,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  try{
+    if (selectedMedId){
+      await db.collection("sv_meds").doc(selectedMedId).set(doc, {merge:true});
+      crudStatus.textContent = "Atualizado com sucesso.";
+    }else{
+      doc.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      const ref = await db.collection("sv_meds").add(doc);
+      crudStatus.textContent = "Salvo com sucesso.";
+      selectedMedId = ref.id;
+      btnDeleteMed.style.display = "";
+    }
+  }catch(e){
+    console.error(e);
+    crudStatus.textContent = "Erro ao salvar (ver console).";
+  }
+}
+
+function resetMedForm(){
+  selectedMedId = null;
+
+  if (fName) fName.value = "";
+  if (fPres) fPres.value = "";
+  if (fGroup) fGroup.value = "";
+  if (fDil) fDil.value = "";
+  if (fRedil) fRedil.value = "";
+  if (fCalcKey) fCalcKey.value = "";
+  if (fObs) fObs.value = "";
+  if (fRefText) fRefText.value = "";
+  if (fParams) fParams.value = "";
+
+  if (fR1) fR1.value = "";
+  if (fR2) fR2.value = "";
+  if (fR3) fR3.value = "";
+  if (fR4) fR4.value = "";
+  if (fR5) fR5.value = "";
+  if (fR6) fR6.value = "";
+
+  if (fActive) fActive.value = "true";
+  if (fRefEnabled) fRefEnabled.value = "false";
+
+  if (btnDeleteMed) btnDeleteMed.style.display = "none";
+  if (crudStatus) crudStatus.textContent = "Formulário limpo.";
+}
+
+async function deleteMed(){
+  if (!selectedMedId) return;
+  if (!confirm("Excluir esta medicação?")) return;
+  try{
+    await db.collection("sv_meds").doc(selectedMedId).delete();
+    crudStatus.textContent = "Excluída.";
+    resetMedForm();
+  }catch(e){
+    console.error(e);
+    crudStatus.textContent = "Erro ao excluir (ver console).";
+  }
+}
+
+function normalizeSearch(s){
+  return String(s || "")
+    .toLowerCase()
+    .normalize("NFD")                 // separa acentos
+    .replace(/[\u0300-\u036f]/g, "")  // remove acentos
+    .trim();
+}
+
+function renderMedList(){
+  if (!medsCache.length){
+    medList.innerHTML = `<div class="small">Nenhuma medicação cadastrada.</div>`;
+    return;
+  }
+
+  const qRaw = medSearch ? medSearch.value : "";
+  const q = normalizeSearch(qRaw);
+
+  // Base
+  let list = [...medsCache];
+
+  // FILTRO (nome OU grupo; também inclui apresentação e calcKey para “busca inteligente”)
+  if (q){
+    const tokens = q.split(/\s+/).filter(Boolean);
+
+    list = list.filter(m => {
+      const hay = normalizeSearch(
+        `${m.name || ""} ${m.group || ""} ${m.presentation || ""} ${m.calcKey || ""}`
+      );
+      // todas as palavras precisam aparecer (AND)
+      return tokens.every(t => hay.includes(t));
+    });
+  }
+
+  // Ordena A→Z pelo nome (após filtrar)
+  list.sort((a,b)=>{
+    return (a.name || "").localeCompare((b.name || ""), "pt-BR", { sensitivity:"base" });
+  });
+
+  if (!list.length){
+    medList.innerHTML = `<div class="small">Nenhum resultado para <b>${escapeHtml(qRaw)}</b>.</div>`;
+    return;
+  }
+
+  medList.innerHTML = list.map(m => {
+    const on = m.active
+      ? `<span style="color:var(--ok);font-weight:1000">ATIVO</span>`
+      : `<span style="color:var(--danger);font-weight:1000">INATIVO</span>`;
+
+    return `
+      <div style="padding:10px;border:1px solid var(--line);border-radius:14px;background:#fff;margin-bottom:8px;cursor:pointer"
+           onclick="pickMed('${m.id}')">
+        <div style="font-weight:1000">
+          ${escapeHtml(m.name || "")}
+          <span class="tag">${escapeHtml(m.group || "")}</span>
+        </div>
+        <div class="small">${escapeHtml(m.presentation || "")}</div>
+        <div class="small">calcKey: <b>${escapeHtml(m.calcKey || "")}</b> • ${on}</div>
+      </div>
+    `;
+  }).join("");
+}
+
+
+
+window.pickMed = function(id){
+  const m = medsCache.find(x => x.id === id);
+  if (!m) return;
+  selectedMedId = id;
+
+  fName.value = m.name || "";
+  fPres.value = m.presentation || "";
+  fGroup.value = m.group || "";
+  fDil.value = m.dilution || "";
+  fRedil.value = m.redilution || "";
+  fCalcKey.value = m.calcKey || "TEXT_ONLY";
+  fActive.value = m.active ? "true" : "false";
+  fRefEnabled.value = m.refEnabled ? "true" : "false";
+  fRefText.value = m.refText || "";
+  fObs.value = m.obs || "";
+  fR1.value = m.resp1Label || "";
+  fR2.value = m.resp2Label || "";
+  fR3.value = m.resp3Label || "";
+  fR4.value = m.resp4Label || "";
+  fR5.value = m.resp5Label || "";
+  fR6.value = m.resp6Label || "";
+  fParams.value = JSON.stringify(m.params || {}, null, 2);
+
+  btnDeleteMed.style.display = "";
+  crudStatus.textContent = "Editando medicação selecionada.";
+};
+
+/* =========================================================
+   9) LIVE LISTENER (Firestore)
+   ========================================================= */
+db.collection("sv_meds").onSnapshot((snap)=>{
+  const arr = [];
+  snap.forEach(doc=>{
+    const d = doc.data() || {};
+    arr.push({
+      id: doc.id,
+      ...d,
+      // normaliza
+      active: !!d.active,
+      params: d.params || {},
+      stepper: d.stepper || null
+    });
+  });
+  medsCache = arr;
+
+  // Se não houver nada, cria seeds iniciais automaticamente (uma vez)
+  if (medsCache.length === 0){
+    seedInitialMeds().catch(console.error);
+  }
+
+  renderMedList();
+
+
+  // Atualiza o editor de Sessões (CRUD Protocolos), quando existir
+
+  renderProtoSessionsUI();
+
+    // se já houver peso/idade válidos, re-render (medicações + materiais)
+  const ageTxt = (pAge.value || "").trim();
+  const w = toNum(pWeight.value);
+
+  if (ageTxt && isFinite(w) && w > 0){
+    const ctx = { weightKg: w, pcal: calcPcal(w), sc: calcSC(w) };
+    renderRxTable(ctx);
+    renderMaterialsSelected(ctx, ageTxt);
+  } else {
+    const el = document.getElementById("matGrid");
+    if (el) el.innerHTML = `<div class="small">Preencha <b>idade</b> e <b>peso</b> e clique em <b>Calcular</b>.</div>`;
+  }
+});
+  
+  // =========================
+//  CRUD PROTOCOLOS (Firestore)
+// =========================
+const protoStatus = document.getElementById("protoStatus");
+const protoList = document.getElementById("protoList");
+
+const pSlug = document.getElementById("pSlug");
+  const pShowMaterials = document.getElementById("pShowMaterials");
+const pTitle = document.getElementById("pTitle");
+const pSubtitle = document.getElementById("pSubtitle");
+const pSummary = document.getElementById("pSummary");
+const pFlowUrl = document.getElementById("pFlowUrl");
+const pBodyHtml = document.getElementById("pBodyHtml");
+const pMedsFilter = document.getElementById("pMedsFilter");
+const pActive = document.getElementById("pActive");
+
+const btnSaveProto = document.getElementById("btnSaveProto");
+const btnResetProto = document.getElementById("btnResetProto");
+const btnDeleteProto = document.getElementById("btnDeleteProto");
+
+btnSaveProto.onclick = () => saveProto();
+btnResetProto.onclick = () => resetProtoForm();
+btnDeleteProto.onclick = () => deleteProto();
+
+// Sessões (UI)
+const btnProtoSessionsClear = document.getElementById("btnProtoSessionsClear");
+if (btnProtoSessionsClear) btnProtoSessionsClear.onclick = () => clearProtoSessions();
+
+const btnProtoAdvancedToggle = document.getElementById("btnProtoAdvancedToggle");
+if (btnProtoAdvancedToggle){
+  btnProtoAdvancedToggle.onclick = () => {
+    const box = document.getElementById("protoAdvancedBox");
+    if (!box) return;
+    box.style.display = (box.style.display === "none" || !box.style.display) ? "" : "none";
+  };
+}
+
+  
+function resetProtoForm(){
+  selectedProtoId = null;
+  pSlug.value = "";
+  pTitle.value = "";
+  pSubtitle.value = "";
+  pSummary.value = "";
+  pFlowUrl.value = "";
+  pBodyHtml.value = "";
+  pMedsFilter.value = "";
+  pActive.value = "true";
+pShowMaterials.value = "true"; // <<<<<< ADICIONE ISTO
+btnDeleteProto.style.display = "none";
+protoStatus.textContent = "";
+}
+
+function parseJsonOrEmpty(txt){
+  const t = (txt || "").trim();
+  if (!t) return null;
+  try{
+    const obj = JSON.parse(t);
+    return (obj && typeof obj === "object") ? obj : null;
+  }catch(e){
+    throw new Error("JSON inválido no filtro de medicações.");
+  }
+}
+
+async function saveProto(){
+  const slug = (pSlug.value||"").trim();
+  if (!slug){
+    protoStatus.textContent = "Preencha o slug.";
+    return;
+  }
+  const docId = slug;
+
+  let medsFilter = null;
+  try{
+    const raw = parseJsonOrEmpty(pMedsFilter.value);
+    medsFilter = normalizeMedsFilter(raw);
+  }catch(err){
+    protoStatus.textContent = err.message;
+    return;
+  }
+
+  // NOVO: salva sessões (Sessão 1–6)
+  const medSessions = protoSessionsToDoc();
+  const hasSessions = Array.isArray(medSessions) && medSessions.some(s => {
+    if (!s) return false;
+    const t = String(s.title||"").trim();
+    const g = Array.isArray(s.groups) && s.groups.length;
+    const m = Array.isArray(s.medIds) && s.medIds.length;
+    return t || g || m;
+  });
+
+  // Se você está usando sessões, não faz sentido manter o JSON legado ao mesmo tempo
+  if (hasSessions) medsFilter = null;
+
+  const doc = {
+    slug,
+    title: (pTitle.value||"").trim(),
+    subtitle: (pSubtitle.value||"").trim(),
+    summary: (pSummary.value||"").trim(),
+    bodyHtml: (pBodyHtml.value||"").trim(),
+    flowchartUrl: (pFlowUrl.value||"").trim(),
+    medSessions: medSessions,      // <-- NOVO (salva no Firestore)
+    medsFilter: medsFilter,        // legado (só se não houver sessões)
+    active: (pActive.value === "true"),
+    showMaterials: (pShowMaterials.value === "true"),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  try{
+    const ref = db.collection("sv_protocolos").doc(docId);
+    const snap = await ref.get();
+
+    if (snap.exists){
+      await ref.update(doc);  // substitui campos inteiros
+    } else {
+      doc.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      await ref.set(doc); // sem merge
+    }
+
+    protoStatus.textContent = "Protocolo salvo/atualizado.";
+    selectedProtoId = docId;
+    btnDeleteProto.style.display = "";
+  }catch(e){
+    console.error(e);
+    protoStatus.textContent = "Erro ao salvar (ver console).";
+  }
+}
+
+function normalizeMedsFilter(input){
+  if (!input || typeof input !== "object") return null;
+
+  // não muta o objeto original
+  const obj = { ...input };
+
+  // aceita legado "grupos" e converte para "groups"
+  if (Array.isArray(obj.grupos) && !Array.isArray(obj.groups)){
+    obj.groups = obj.grupos;
+  }
+  delete obj.grupos;
+
+  const cleanArr = (arr) => {
+    const out = arr
+      .map(x => String(x).trim())
+      .filter(Boolean);
+    return [...new Set(out)];
+  };
+
+  const clean = {};
+
+  if (Array.isArray(obj.groups) && obj.groups.length){
+    const v = cleanArr(obj.groups);
+    if (v.length) clean.groups = v;
+  }
+
+  if (Array.isArray(obj.names) && obj.names.length){
+    const v = cleanArr(obj.names);
+    if (v.length) clean.names = v;
+  }
+
+  if (Array.isArray(obj.calcKeys) && obj.calcKeys.length){
+    const v = cleanArr(obj.calcKeys);
+    if (v.length) clean.calcKeys = v;
+  }
+
+  const nm = String(obj.namesMode || "").trim().toLowerCase();
+  if (nm === "contains" || nm === "equals") clean.namesMode = nm;
+
+  return Object.keys(clean).length ? clean : null;
+}
+
+
+  
+function renderProtoList(){
+  if (!protoCache.length){
+    protoList.innerHTML = `<div class="small">Nenhum protocolo cadastrado.</div>`;
+    return;
+  }
+  const list = [...protoCache].sort((a,b)=>{
+    return (a.title||a.slug||"").toLowerCase().localeCompare((b.title||b.slug||"").toLowerCase());
+  });
+
+  protoList.innerHTML = list.map(p => {
+    const on = p.active ? `<span style="color:var(--ok);font-weight:1000">ATIVO</span>` : `<span style="color:var(--danger);font-weight:1000">INATIVO</span>`;
+    return `
+      <div style="padding:10px;border:1px solid var(--line);border-radius:14px;background:#fff;margin-bottom:8px;cursor:pointer"
+           data-slug="${escapeHtml(p.slug)}"
+onclick="pickProto(this.dataset.slug)">
+        <div style="font-weight:1000">${escapeHtml(p.title || p.slug)} <span class="tag">${escapeHtml(p.slug)}</span></div>
+        <div class="small">${escapeHtml(p.subtitle||"")}</div>
+        <div class="small">${on}</div>
+      </div>
+    `;
+  }).join("");
+}
+
+window.pickProto = function(slug){
+  const p = protoCache.find(x => x.slug === slug);
+  if (!p) return;
+  selectedProtoId = slug;
+
+  pSlug.value = p.slug || "";
+  pTitle.value = p.title || "";
+  pSubtitle.value = p.subtitle || "";
+  pSummary.value = p.summary || "";
+  pFlowUrl.value = p.flowchartUrl || "";
+  pBodyHtml.value = p.bodyHtml || "";
+  pMedsFilter.value = p.medsFilter ? JSON.stringify(p.medsFilter, null, 2) : "";
+  pActive.value = p.active ? "true" : "false";
+  pShowMaterials.value = (p.showMaterials === false) ? "false" : "true";
+
+  // Recarrega as Sessões (1–6) no editor do CRUD
+  protoSessionsFromDoc(p.medSessions, p.medsFilter);
+  renderProtoSessionsUI();
+
+  btnDeleteProto.style.display = "";
+  protoStatus.textContent = "Editando protocolo selecionado.";
+};
+
+// Listener
+db.collection("sv_protocolos").onSnapshot((snap)=>{
+  const arr = [];
+  snap.forEach(doc=>{
+    const d = doc.data() || {};
+    arr.push({
+  ...d,
+  slug: (d.slug || doc.id),
+  medsFilter: normalizeMedsFilter(d.medsFilter),
+  active: !!d.active,
+  showMaterials: (d.showMaterials === false) ? false : true
+});
+  });
+  protoCache = arr;
+  renderProtoList();
+
+  // Se está em modo público e veio proto=..., aplica automaticamente
+  if (PUBLIC_MODE && PROTO_SLUG){
+    const p = protoCache.find(x => (x.slug||"") === PROTO_SLUG && x.active);
+    if (p){
+      activeProto = p;
+      applyMaterialsVisibilityByProto();
+      showProtocolCard(p);
+
+      // re-render se já tiver peso/idade válidos
+      const ageTxt = (pAge.value || "").trim();
+      const w = toNum(pWeight.value);
+      if (ageTxt && isFinite(w) && w > 0){
+        const ctx = { weightKg: w, pcal: calcPcal(w), sc: calcSC(w) };
+        renderRxTable(ctx);
+        renderMaterialsSelected(ctx, ageTxt);
+      }
+    } else {
+      showProtocolCard({
+        title: "Protocolo não encontrado ou inativo",
+        subtitle: PROTO_SLUG,
+        summary: "Verifique o slug ou ative o protocolo no CRUD.",
+        bodyHtml: "",
+        flowchartUrl: ""
+      });
+    }
+  }
+});
+
+
+/* =========================================================
+   10) SEED INICIAL (se base vazia)
+   ========================================================= */
+async function seedInitialMeds(){
+  const col = db.collection("sv_meds");
+
+  const seeds = [
+    {
+      name: "Epinefrina (Adrenalina)",
+      presentation: "1 mg/mL (ampola 1 mL)",
+      group: "Parada cardiorrespiratória",
+      dilution: "1 mL + 9 mL de AD",
+      redilution: "",
+      calcKey: "EPI_CPR",
+      active: true,
+      refEnabled: true,
+      refText: "0,01 mg/kg/dose (após diluição 1:10)",
+      obs: "",
+      resp1Label: "",
+      resp2Label: "",
+      params: {maxMg:1, flushMl:5}
+    },
+    {
+      name: "Amiodarona",
+      presentation: "50 mg/mL (ampola 3 mL)",
+      group: "Parada cardiorrespiratória",
+      dilution: "3 mL + 57 mL de SG5%",
+      redilution: "",
+      calcKey: "AMIO_CPR",
+      active: true,
+      refEnabled: true,
+      refText: "5 mg/kg (máx 150 mg)",
+      obs: "",
+      resp1Label: "",
+      resp2Label: "",
+      params: {maxMg:150, vehicle:"SG5%"}
+    },
+    {
+      name: "Desfibrilação",
+      presentation: "Energia (J) por peso",
+      group: "Parada cardiorrespiratória",
+      dilution: "",
+      redilution: "",
+      calcKey: "DEFIB_2RESP",
+      active: true,
+      refEnabled: false,
+      refText: "",
+      obs: "Afastar todos e oxigênio. Dobrar de 2 em 2 J/kg até máximo de 200 J.",
+      resp1Label: "Dose inicial",
+      resp2Label: "Dose seguinte",
+      params: {maxJ:200}
+    },
+    {
+      name: "Noradrenalina",
+      presentation: "1 mg/mL",
+      group: "Drogas vasoativas",
+      dilution: "Diluição 5 mL + 95 mL de SF 0,9%",
+      redilution: "",
+      calcKey: "NOREPI_STEPPER",
+      active: true,
+      refEnabled: false,
+      refText: "",
+      obs: "Ajustar conforme perfusão/PA. Monitorização contínua.",
+      resp1Label: "",
+      resp2Label: "",
+      params: {start:0.05, step:0.05, max:2, concMcgPerMl:50},
+      stepper: {start:0.05, step:0.05, max:2}
+    }
+  ];
+
+  for (const s of seeds){
+    await col.add({
+      ...s,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }
+}
+</script>
+
+</body>
+</html>

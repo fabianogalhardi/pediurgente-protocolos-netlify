@@ -1,0 +1,7 @@
+[build]
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/p/:slug"
+  to = "/.netlify/functions/proto?slug=:slug"
+  status = 200
